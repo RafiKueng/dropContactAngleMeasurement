@@ -12,6 +12,7 @@ import multiprocessing as mproc
 
 import numpy as np
 import matplotlib as mplib
+import cv
 
 import time
 import random as rnd
@@ -34,7 +35,7 @@ class InputHandler(mproc.Process):
         
     def run(self):
         print '%s: run @t: %f' % (self.name, time.time())
-        time.sleep(1)
+        time.sleep(2)
         self.datapipes[0].send('hi there')
         print '%s: stop'%self.name
         
@@ -53,8 +54,8 @@ class WorkHandler(mproc.Process):
         
     def run(self):
         print '%s: run @t: %f' % (self.name, time.time())
-        time.sleep(5)
-        tmp = self.datapipe.recv()
+        time.sleep(1)
+        tmp = self.datapipe.recv() #waits till it gets something
         print '%s: i got message: <%s>, putting it on the stack @t: %f' % (self.name, tmp, time.time())
         #print time.clock()
         self.result_queue.put(tmp)
@@ -75,7 +76,7 @@ class OutputHandler(mproc.Process):
     def run(self):
         print '%s: run @t: %f' % (self.name, time.time())
         time.sleep(2)
-        tmp = 'rien'#self.result_queue.get()
+        tmp = self.result_queue.get()
         print '%s: stop: got <%s> from queue @t: %f' % (self.name, tmp, time.time())
         
 
