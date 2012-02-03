@@ -21,18 +21,16 @@ import cv2.cv as cv
 #cv.WaitKey(0)
 
 
-file = cv.CaptureFromFile('../bin/testfile.mpg')
+#file = cv.CaptureFromFile('../bin/testfile.mpg')
 
-print cv.GetCaptureProperty(file, cv.CV_CAP_PROP_FRAME_WIDTH)
-
-cv.NamedWindow("win", cv.CV_WINDOW_AUTOSIZE)
+#print cv.GetCaptureProperty(file, cv.CV_CAP_PROP_FRAME_WIDTH)
 
 
-def getData():
-    cv.GrabFrame(file)    
-    img = cv.RetrieveFrame(file)
-    cv.ShowImage("win", img)
-    #cv.WaitKey(0)
+
+def writeData(data):
+    cv.NamedWindow("win", cv.CV_WINDOW_AUTOSIZE)
+    cv.ShowImage("win", data[0])
+    cv.WaitKey(0)
 
 if __name__ == '__main__':
     #getData()

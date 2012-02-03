@@ -2,7 +2,7 @@
 
 import cv2.cv as cv
 
-cap = cv.CreateFileCapture("../c/tree.avi")
+cap = cv.CreateFileCapture("../bin/testfile.mp4")
 img = cv.QueryFrame(cap)
 print "Got frame of dimensions (", img.width, " x ", img.height, ")"
 

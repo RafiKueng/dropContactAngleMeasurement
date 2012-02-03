@@ -18,6 +18,13 @@ import time
 import random as rnd
 
 
+
+#tmp, this is later done by plugin manager
+import plugins.SimpleDisplay as piSD
+import plugins.SimpleFrameGrabber as piSFG
+
+
+
 #-----------------------------------------------------------------------------
 # define processes
 #-----------------------------------------------------------------------------
@@ -28,37 +35,43 @@ class InputHandler(mproc.Process):
     will be spawn once    
     """   
 
-    def __init__(self, datapipes):
+    def __init__(self, datapipes, readers):
         mproc.Process.__init__(self)
         print '%s: init'%self.name
-        self.datapipes = datapipes        
+        self.datapipes = datapipes
+        self.readers = readers
         
     def run(self):
         print '%s: run @t: %f' % (self.name, time.time())
-        time.sleep(2)
-        self.datapipes[0].send('hi there')
+        time.sleep(1)
+        frame = self.readers[0]()
+        self.datapipes[0].send([frame])
         print '%s: stop'%self.name
         
 
-class WorkHandler(mproc.Process):
+class WorkerHandler(mproc.Process):
     """handels the processing of the data
     
     can possibly be spawn multiple times (depening on no of cpu cores)    
     """     
     
-    def __init__(self, datapipe, result_queue):
+    def __init__(self, datapipe, result_queue, workers):
         mproc.Process.__init__(self)
         print '%s: init'%self.name
         self.datapipe = datapipe
         self.result_queue = result_queue
+        self.workers = workers
         
     def run(self):
         print '%s: run @t: %f' % (self.name, time.time())
-        time.sleep(1)
-        tmp = self.datapipe.recv() #waits till it gets something
-        print '%s: i got message: <%s>, putting it on the stack @t: %f' % (self.name, tmp, time.time())
+        time.sleep(3)
+        data = self.datapipe.recv() #waits till it gets something
+        print '%s: i got a dataframe, putting it on the stack @t: %f' % (self.name, time.time())
+
+        #data = self.workers[0].procData(data)        
+        
         #print time.clock()
-        self.result_queue.put(tmp)
+        self.result_queue.put(data)
         print '%s: stop'%self.name
         
         
@@ -68,16 +81,18 @@ class OutputHandler(mproc.Process):
     will be spawn once    
     """     
     
-    def __init__(self, result_queue):
+    def __init__(self, result_queue, writers):
         mproc.Process.__init__(self)
         print '%s: init'%self.name
         self.result_queue = result_queue
+        self.writers = writers
         
     def run(self):
         print '%s: run @t: %f' % (self.name, time.time())
-        time.sleep(2)
-        tmp = self.result_queue.get()
-        print '%s: stop: got <%s> from queue @t: %f' % (self.name, tmp, time.time())
+        time.sleep(5)
+        data = self.result_queue.get()
+        print '%s: stop: got dataframe from queue @t: %f' % (self.name, time.time())
+        self.writers[0](data)
         
 
 
@@ -96,10 +111,15 @@ def main():
     result_queue = mproc.Queue()
     datapipes = [mproc.Pipe(False) for i in xrange(num_workhandlers)]
     
-    h_input = InputHandler([datapipes[i][1] for i in xrange(num_workhandlers)])
-    h_work = [WorkHandler(datapipes[i][0], result_queue)
+    h_input = InputHandler(
+                [datapipes[i][1] for i in xrange(num_workhandlers)],
+                [piSFG.getData])
+                 
+    h_work = [WorkerHandler(
+                    datapipes[i][0], result_queue, [])
                 for i in xrange(num_workhandlers)]
-    h_output = OutputHandler(result_queue)
+                
+    h_output = OutputHandler(result_queue, [piSD.writeData])
     processes = list([h_input, h_output])
     processes.extend(h_work)
     
