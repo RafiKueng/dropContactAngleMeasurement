@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 """
+Demo Plugin
+Inverts the picture
+
 Created on Tue Feb 07 15:17:12 2012
 
 @author: rafik
@@ -11,27 +14,20 @@ import cv2
 import time
 
 
-
-class wrkDisplay(wrkAbstract):
+class wrkInvert(wrkAbstract):
 
     def __init__(self):
         pass
     
     def setup(self, *args):
-        cv2.namedWindow('worker')
+        pass
     
     def procData(self, data):
-        print 'worker: processing data (display it)'
-        #print type(data[0])
-        #print data[0]
+        print ' - wrkInvert: processing data @t: %f' % (time.time())
+        #time.sleep(1)
         
-        cv2.imshow('worker', data[0])
+        return [cv2.transpose(data[0])]
         
-        print 'worker: sleeping and waiting for key'
-        cv2.waitKey(1)
-        time.sleep(2)
-        
-
 
 if __name__ == '__main__':
     #getData()

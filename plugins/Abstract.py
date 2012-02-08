@@ -17,7 +17,7 @@ class wrkAbstract(object):
     def __init__(self):
         raise NotImplementedError
     
-    def setup(self):
+    def setup(self, *args):
         raise NotImplementedError
     
     def procData(self, data):

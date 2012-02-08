@@ -9,6 +9,7 @@ Created on Thu Feb 02 18:40:30 2012
 #import numpy as np
 import cv2
 from Abstract import inpAbstract
+import time
 
 #file = cv.CaptureFromFile('bin/testfile.mpg')
 #print cv.GetCaptureProperty(file, cv.CV_CAP_PROP_FRAME_WIDTH)
@@ -18,18 +19,20 @@ from Abstract import inpAbstract
 class inpSimpleFrameGrabber(inpAbstract):
 
     def __init__(self):
-        print 'init framegraber'
-        self.filename = 'bin/testfile.mpg'
+        print ' - inpSimpleFrameGrabber: Init @t: %f' % (time.time())
+        #self.filename = 'bin/demo.avi'
         pass
     
-    def setup(self):
-        print 'setup framegraber'
-        self.video = cv2.VideoCapture(self.filename)
+    def setup(self, filename):
+        print ' - inpSimpleFrameGrabber: Setup @t: %f' % (time.time())
+        self.video = cv2.VideoCapture(filename)
         pass
         
     def getData(self):
         #video = cv2.VideoCapture('bin/testfile.mpg')
+        print ' - inpSimpleFrameGrabber: read frame @t: %f' % (time.time())        
         ret, img = self.video.read()
+        print ' - inpSimpleFrameGrabber: frame read finish @t: %f' % (time.time())    
         return img
         
 

@@ -37,18 +37,18 @@ class outSimpleDisplay(outAbstract):
         pass
     
     def setup(self):
-        cv2.namedWindow('worker')
+        cv2.namedWindow('Output')
     
     def writeData(self, data):
-        print 'worker: processing data (display it)'
-        print type(data[0])
-        print data[0]
+        print ' - outSimpleDisplay: display data @t: %f' % (time.time())
+        #print type(data[0])
+        #print data[0]
         
-        cv2.imshow('worker', data[0])
+        cv2.imshow('Output', data[0])
         
-        print 'worker: sleeping and waiting for key'
+        print ' - outSimpleDisplay: (sleeping) and waiting for key @t: %f' % (time.time())
         cv2.waitKey(1)
-        time.sleep(2)
+        #time.sleep(0.001)
 
 
 

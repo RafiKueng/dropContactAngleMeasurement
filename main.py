@@ -6,24 +6,27 @@ Created on Tue Jan 31 00:13:54 2012
 @contact: rafael.kueng@uzh.ch
 """
 
-from os import sys
+#from os import sys
 
 import multiprocessing as mproc
 
-import numpy as np
-import matplotlib as mplib
-import cv
-import copy
+#import numpy as np
+#import matplotlib as mplib
 
 import time
-import random as rnd
+#import random as rnd
 
 
 
 #tmp, this is later done by plugin manager
 import plugins.inpSimpleFrameGrabber as inpSFG
 import plugins.wrkNull as wrkNull
+import plugins.wrkInvert as wrkInv
+import plugins.wrkDev as wrkDev
 import plugins.outSimpleDisplay as outSD
+
+
+testrange = [0,1,2,3,4]
 
 
 
@@ -45,18 +48,19 @@ class InputHandler(mproc.Process):
         
     def run(self):
         print '%s: run @t: %f' % (self.name, time.time())
-        self.readers[0].setup()
+        self.readers[0].setup('bin/testfile.mpg')
 
-        time.sleep(3)
+        time.sleep(5)
         
-        for i in [0,1]:
+        for i in testrange:
+            print '---------------------------'
             print '%s: getframe %.0f @t: %f' % (self.name, i, time.time())
             frame = self.readers[0].getData()
-            time.sleep(1)            
-            print '%s: sendframe %.0f @t: %f' % (self.name, i, time.time())
-            self.datapipes[0].send([frame])
-            time.sleep(5)
-        print '%s: stop'%self.name
+            #time.sleep(3)            
+            print '%s: sendframe %.0f to %.0f @t: %f' % (self.name, i, i%2, time.time())
+            self.datapipes[i%2].send([frame])
+            time.sleep(3)
+        print '%s: stopping @t: %f' % (self.name, time.time())
         
 #    def __getstate__(self):
 #        return self.datapipes, self.readers
@@ -78,23 +82,29 @@ class WorkerHandler(mproc.Process):
         self.result_queue = result_queue
         self.workers = workers
         
+    def setup(self, *args):
+        print '%s: setup @t: %f' % (self.name, time.time())
+        for i, worker in enumerate(self.workers):
+            worker.setup(args[0])
+        
     def run(self):
         print '%s: run @t: %f' % (self.name, time.time())
-        self.workers[0].setup()        
+        #self.workers[0].setup()
         
-        time.sleep(3)
+        #time.sleep(3)
         
-        for i in [0,1]:
+        for i in testrange:
             print '%s: waiting for data %.0f @t: %f' % (self.name, i, time.time())
             data = self.datapipe.recv() #waits till it gets something
             print '%s: got data @t: %f' % (self.name, time.time())
             
-            print '%s: got data @t: %f' % (self.name, time.time())
+            
             data = self.workers[0].procData(data)        
+            print '%s: processed data, put in queue @t: %f' % (self.name, time.time())
             
             #print time.clock()
             self.result_queue.put(data)
-        print '%s: stop'%self.name
+        print '%s: stopping @t: %f' % (self.name, time.time())
         
 #    def __getstate__(self):
 #        return 'bla'
@@ -122,8 +132,9 @@ class OutputHandler(mproc.Process):
         print '%s: run @t: %f' % (self.name, time.time())
         self.writers[0].setup()        
         
-        for i in [0,1]:
-            time.sleep(5)
+        for i in testrange:
+            #time.sleep(5)
+            print '%s: waiting for data @t: %f' % (self.name, time.time())
             data = self.result_queue.get()
             print '%s: got dataframe from queue @t: %f' % (self.name, time.time())
             self.writers[0].writeData(data)
@@ -144,7 +155,7 @@ def main():
     print "main"
     
     #num_processorhandlers = min(1,mproc.cpu_count-1)
-    num_workhandlers = 1
+    num_workhandlers = 2
     
     # set up data pipes and queue
     result_queue = mproc.Queue()
@@ -155,8 +166,12 @@ def main():
                 [inpSFG.inpSimpleFrameGrabber()])
                  
     h_work = [WorkerHandler(
-                    datapipes[i][0], result_queue, [wrkNull.wrkNull()])
+                    datapipes[i][0], result_queue, [wrkDev.wrkDev()])
                 for i in xrange(num_workhandlers)]
+                
+    waittime = [5,1]
+    for i, handler in enumerate(h_work):
+        handler.setup(waittime[i])
                 
     h_output = OutputHandler(result_queue, [outSD.outSimpleDisplay()])
     processes = list([h_input, h_output])
