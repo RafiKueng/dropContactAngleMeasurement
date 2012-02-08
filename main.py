@@ -13,6 +13,7 @@ import multiprocessing as mproc
 import numpy as np
 import matplotlib as mplib
 import cv
+import copy
 
 import time
 import random as rnd
@@ -22,6 +23,7 @@ import random as rnd
 #tmp, this is later done by plugin manager
 import plugins.SimpleDisplay as piSD
 import plugins.SimpleFrameGrabber as piSFG
+import plugins.SimpleWorker as piSW
 
 
 
@@ -40,13 +42,28 @@ class InputHandler(mproc.Process):
         print '%s: init'%self.name
         self.datapipes = datapipes
         self.readers = readers
+        #self.readers[0].init()
         
     def run(self):
         print '%s: run @t: %f' % (self.name, time.time())
-        time.sleep(1)
-        frame = self.readers[0]()
-        self.datapipes[0].send([frame])
+        self.readers[0].setup()
+
+        time.sleep(3)
+        
+        for i in [0,1]:
+            print '%s: getframe %.0f @t: %f' % (self.name, i, time.time())
+            frame = self.readers[0].getData()
+            time.sleep(1)            
+            print '%s: sendframe %.0f @t: %f' % (self.name, i, time.time())
+            self.datapipes[0].send([frame])
+            time.sleep(5)
         print '%s: stop'%self.name
+        
+#    def __getstate__(self):
+#        return self.datapipes, self.readers
+#        
+#    def __setstate__(self, state):
+#        self.datapipes, self.readers = state
         
 
 class WorkerHandler(mproc.Process):
@@ -61,19 +78,34 @@ class WorkerHandler(mproc.Process):
         self.datapipe = datapipe
         self.result_queue = result_queue
         self.workers = workers
+        #   self.workers[0].init()
         
     def run(self):
         print '%s: run @t: %f' % (self.name, time.time())
-        time.sleep(3)
-        data = self.datapipe.recv() #waits till it gets something
-        print '%s: i got a dataframe, putting it on the stack @t: %f' % (self.name, time.time())
-
-        #data = self.workers[0].procData(data)        
+        self.workers[0].setup()        
         
-        #print time.clock()
-        self.result_queue.put(data)
+        time.sleep(3)
+        
+        for i in [0,1]:
+            print '%s: waiting for data %.0f @t: %f' % (self.name, i, time.time())
+            data = self.datapipe.recv() #waits till it gets something
+            print '%s: got data @t: %f' % (self.name, time.time())
+            
+            print '%s: got data @t: %f' % (self.name, time.time())
+            data = self.workers[0].procData(data)        
+            
+            #print time.clock()
+            self.result_queue.put(data)
         print '%s: stop'%self.name
         
+#    def __getstate__(self):
+#        return 'bla'
+#        
+#    def __setstate__(self, str):
+#        pass
+
+
+
         
 class OutputHandler(mproc.Process):
     """handels the output (display, saving) of the data
@@ -86,15 +118,22 @@ class OutputHandler(mproc.Process):
         print '%s: init'%self.name
         self.result_queue = result_queue
         self.writers = writers
+        #self.writers[0].init()
         
     def run(self):
         print '%s: run @t: %f' % (self.name, time.time())
+        self.writers[0].setup()        
+        
         time.sleep(5)
         data = self.result_queue.get()
         print '%s: stop: got dataframe from queue @t: %f' % (self.name, time.time())
-        self.writers[0](data)
+        #self.writers[0](data)
         
-
+#    def __getstate__(self):
+#        return 'bla'
+#        
+#    def __setstate__(self, str):
+#        pass
 
 
 #-----------------------------------------------------------------------------
@@ -113,24 +152,29 @@ def main():
     
     h_input = InputHandler(
                 [datapipes[i][1] for i in xrange(num_workhandlers)],
-                [piSFG.getData])
+                [piSFG.piSimpleFrameGrabber()])
                  
     h_work = [WorkerHandler(
-                    datapipes[i][0], result_queue, [])
+                    datapipes[i][0], result_queue, [piSW.piSimpleWorker()])
                 for i in xrange(num_workhandlers)]
                 
-    h_output = OutputHandler(result_queue, [piSD.writeData])
+    h_output = OutputHandler(result_queue, [piSD])
     processes = list([h_input, h_output])
     processes.extend(h_work)
     
     # start all the processes
-    [p.start() for p in processes]
+    #[p.start() for p in processes]
+    h_input.start()
+    #h_output.start()
+    h_work[0].start()
     
     
     # cleaning up
     result_queue.close()
     result_queue.join_thread()
-    [p.join() for p in processes]
+    #[p.join() for p in processes]
+    h_input.join()
+    h_work[0].join()
 
 
 

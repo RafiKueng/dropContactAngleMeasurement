@@ -5,8 +5,8 @@ Created on Thu Feb 02 18:40:30 2012
 @author: rafik
 """
 
-from os import sys
-import numpy as np
+#from os import sys
+#import numpy as np
 import cv2.cv as cv
 
 
@@ -27,10 +27,18 @@ import cv2.cv as cv
 
 
 
-def writeData(data):
+def init():
+    pass
+
+def setup():
     cv.NamedWindow("win", cv.CV_WINDOW_AUTOSIZE)
+
+def writeData(self,data):
+
     cv.ShowImage("win", data[0])
     cv.WaitKey(0)
+
+
 
 if __name__ == '__main__':
     #getData()
