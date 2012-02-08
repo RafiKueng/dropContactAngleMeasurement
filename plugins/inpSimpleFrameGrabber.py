@@ -21,6 +21,7 @@ class inpSimpleFrameGrabber(inpAbstract):
     def __init__(self):
         print ' - inpSimpleFrameGrabber: Init @t: %f' % (time.time())
         #self.filename = 'bin/demo.avi'
+        self.counter = 0
         pass
     
     def setup(self, filename):
@@ -33,7 +34,8 @@ class inpSimpleFrameGrabber(inpAbstract):
         print ' - inpSimpleFrameGrabber: read frame @t: %f' % (time.time())        
         ret, img = self.video.read()
         print ' - inpSimpleFrameGrabber: frame read finish @t: %f' % (time.time())    
-        return img
+        self.counter =+ 1
+        return [img, self.counter]
         
 
 

@@ -20,9 +20,9 @@ inp.setup('bin/testfile.mpg')
 wrk.setup()
 out.setup()
 
-data = [inp.getData()]
-data = [inp.getData()]
-data = [inp.getData()]
+data = inp.getData()
+data = inp.getData()
+data = inp.getData()
 data = wrk.procData(data)
 out.writeData(data)
 

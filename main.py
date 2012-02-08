@@ -14,6 +14,7 @@ import multiprocessing as mproc
 #import matplotlib as mplib
 
 import time
+import heapq
 #import random as rnd
 
 
@@ -26,7 +27,7 @@ import plugins.wrkDev as wrkDev
 import plugins.outSimpleDisplay as outSD
 
 
-testrange = [0,1,2,3,4]
+testrange = range(0,10)
 
 
 
@@ -54,20 +55,21 @@ class InputHandler(mproc.Process):
         
         for i in testrange:
             print '---------------------------'
-            print '%s: getframe %.0f @t: %f' % (self.name, i, time.time())
-            frame = self.readers[0].getData()
+            print '%s: get dataframe %.0f @t: %f' % (self.name, i, time.time())
+            data = self.readers[0].getData()
             #time.sleep(3)            
-            print '%s: sendframe %.0f to %.0f @t: %f' % (self.name, i, i%2, time.time())
-            self.datapipes[i%2].send([frame])
-            time.sleep(3)
+            print '%s: send dataframe %.0f to %.0f @t: %f' % (self.name, i, i%2, time.time())
+            self.datapipes[i%2].send(data)
+            time.sleep(1)
+        
+        
+        #we're finished, sending signals to workers to close connection
+        print '%s: finished, tell workers to shut down @t: %f' % (self.name, time.time())
+        for pipe in self.datapipes:
+            pipe.send(-1)
         print '%s: stopping @t: %f' % (self.name, time.time())
         
-#    def __getstate__(self):
-#        return self.datapipes, self.readers
-#        
-#    def __setstate__(self, state):
-#        self.datapipes, self.readers = state
-        
+       
 
 class WorkerHandler(mproc.Process):
     """handels the processing of the data
@@ -89,15 +91,12 @@ class WorkerHandler(mproc.Process):
         
     def run(self):
         print '%s: run @t: %f' % (self.name, time.time())
-        #self.workers[0].setup()
-        
-        #time.sleep(3)
         
         for i in testrange:
             print '%s: waiting for data %.0f @t: %f' % (self.name, i, time.time())
             data = self.datapipe.recv() #waits till it gets something
             print '%s: got data @t: %f' % (self.name, time.time())
-            
+            if data == -1: break
             
             data = self.workers[0].procData(data)        
             print '%s: processed data, put in queue @t: %f' % (self.name, time.time())
@@ -130,14 +129,35 @@ class OutputHandler(mproc.Process):
         
     def run(self):
         print '%s: run @t: %f' % (self.name, time.time())
-        self.writers[0].setup()        
+        self.writers[0].setup()
+        datacounter = 0
+        framecounter = 1
+        buffer = [] #list used as heap queue (priority queue)
         
         for i in testrange:
             #time.sleep(5)
             print '%s: waiting for data @t: %f' % (self.name, time.time())
             data = self.result_queue.get()
-            print '%s: got dataframe from queue @t: %f' % (self.name, time.time())
-            self.writers[0].writeData(data)
+            datacounter =+ 1
+            print '%s: got dataframe nr %.0f from queue @t: %f' % (self.name, datacounter, time.time())
+            
+#            for writer in self.writers:
+#                writer.writeData(data)            
+            
+            if data[1] == framecounter:
+                print '%s: on time, write it @t: %f' % (self.name, datacounter, time.time())
+                framecounter =+ 1
+                for writer in self.writers:
+                    writer.writeData(data)
+            else:
+                print '%s: ahead of time, write it @t: %f' % (self.name, datacounter, time.time())
+                heapq.heappush(buffer, data)
+                while buffer[0][1] == framecounter:
+                    data = heapq.heappop(buffer)
+                    framecounter =+ 1
+                    for writer in self.writers:
+                        writer.writeData(data)
+
         print '%s: stopping @t: %f' % (self.name, time.time())
         
 #    def __getstate__(self):
@@ -169,7 +189,7 @@ def main():
                     datapipes[i][0], result_queue, [wrkDev.wrkDev()])
                 for i in xrange(num_workhandlers)]
                 
-    waittime = [5,1]
+    waittime = [3,2]
     for i, handler in enumerate(h_work):
         handler.setup(waittime[i])
                 
@@ -186,11 +206,11 @@ def main():
     
     
     # cleaning up
-    result_queue.close()
+    h_input.join() #close the input handler
+    [handler.join() for handler in h_work] #wait for the workers to finish
+    h_output.join() #wait for ouput to finish writing
+    result_queue.close() #close the 
     result_queue.join_thread()
-    [p.join() for p in processes]
-    #h_input.join()
-    #h_work[0].join()
 
 
 
