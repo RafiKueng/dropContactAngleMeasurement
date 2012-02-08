@@ -21,9 +21,9 @@ import random as rnd
 
 
 #tmp, this is later done by plugin manager
-import plugins.SimpleDisplay as piSD
-import plugins.SimpleFrameGrabber as piSFG
-import plugins.SimpleWorker as piSW
+import plugins.inpSimpleFrameGrabber as inpSFG
+import plugins.wrkNull as wrkNull
+import plugins.outSimpleDisplay as outSD
 
 
 
@@ -42,7 +42,6 @@ class InputHandler(mproc.Process):
         print '%s: init'%self.name
         self.datapipes = datapipes
         self.readers = readers
-        #self.readers[0].init()
         
     def run(self):
         print '%s: run @t: %f' % (self.name, time.time())
@@ -78,7 +77,6 @@ class WorkerHandler(mproc.Process):
         self.datapipe = datapipe
         self.result_queue = result_queue
         self.workers = workers
-        #   self.workers[0].init()
         
     def run(self):
         print '%s: run @t: %f' % (self.name, time.time())
@@ -124,10 +122,12 @@ class OutputHandler(mproc.Process):
         print '%s: run @t: %f' % (self.name, time.time())
         self.writers[0].setup()        
         
-        time.sleep(5)
-        data = self.result_queue.get()
-        print '%s: stop: got dataframe from queue @t: %f' % (self.name, time.time())
-        #self.writers[0](data)
+        for i in [0,1]:
+            time.sleep(5)
+            data = self.result_queue.get()
+            print '%s: got dataframe from queue @t: %f' % (self.name, time.time())
+            self.writers[0].writeData(data)
+        print '%s: stopping @t: %f' % (self.name, time.time())
         
 #    def __getstate__(self):
 #        return 'bla'
@@ -152,29 +152,30 @@ def main():
     
     h_input = InputHandler(
                 [datapipes[i][1] for i in xrange(num_workhandlers)],
-                [piSFG.piSimpleFrameGrabber()])
+                [inpSFG.inpSimpleFrameGrabber()])
                  
     h_work = [WorkerHandler(
-                    datapipes[i][0], result_queue, [piSW.piSimpleWorker()])
+                    datapipes[i][0], result_queue, [wrkNull.wrkNull()])
                 for i in xrange(num_workhandlers)]
                 
-    h_output = OutputHandler(result_queue, [piSD])
+    h_output = OutputHandler(result_queue, [outSD.outSimpleDisplay()])
     processes = list([h_input, h_output])
     processes.extend(h_work)
     
     # start all the processes
-    #[p.start() for p in processes]
-    h_input.start()
+    [p.start() for p in processes]
+    
+    #h_input.start()
     #h_output.start()
-    h_work[0].start()
+    #h_work[0].start()
     
     
     # cleaning up
     result_queue.close()
     result_queue.join_thread()
-    #[p.join() for p in processes]
-    h_input.join()
-    h_work[0].join()
+    [p.join() for p in processes]
+    #h_input.join()
+    #h_work[0].join()
 
 
 

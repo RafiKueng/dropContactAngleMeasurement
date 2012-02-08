@@ -8,14 +8,15 @@ Created on Thu Feb 02 18:40:30 2012
 #from os import sys
 #import numpy as np
 import cv2
-
+from Abstract import inpAbstract
 
 #file = cv.CaptureFromFile('bin/testfile.mpg')
 #print cv.GetCaptureProperty(file, cv.CV_CAP_PROP_FRAME_WIDTH)
 
 
 
-class piSimpleFrameGrabber(object):
+class inpSimpleFrameGrabber(inpAbstract):
+
     def __init__(self):
         print 'init framegraber'
         self.filename = 'bin/testfile.mpg'
@@ -31,15 +32,6 @@ class piSimpleFrameGrabber(object):
         ret, img = self.video.read()
         return img
         
-        #cv.GrabFrame(file)    
-        #return cv.RetrieveFrame(file)
-
-#    def __getstate__(self):
-#        return self.filename
-#    
-#    def __setstate__(self, state):
-#        self.filename = state
-#        #self.video = cv2.VideoCapture(self.filename)
 
 
 if __name__ == '__main__':

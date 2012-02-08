@@ -5,12 +5,14 @@ Created on Tue Feb 07 15:17:12 2012
 @author: rafik
 """
 
+from Abstract import wrkAbstract
+
 import cv2
 import time
 
 
 
-class piSimpleWorker(object):
+class wrkDisplay(wrkAbstract):
 
     def __init__(self):
         pass
@@ -30,11 +32,6 @@ class piSimpleWorker(object):
         time.sleep(2)
         
 
-#    def __getstate__(self):
-#        return ''
-#    
-#    def __setstate__(self, state):
-#        pass
 
 if __name__ == '__main__':
     #getData()

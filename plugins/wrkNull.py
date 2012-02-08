@@ -1,17 +1,20 @@
 # -*- coding: utf-8 -*-
 """
-Basic worker layout, doesn't do anything except passing the data on
+Basic worker layout, doesn't do anything except
+waiting and passing the data on
 
 Created on Tue Feb 07 15:17:12 2012
 
 @author: rafik
 """
 
+from Abstract import wrkAbstract
+
 #import cv2
 import time
 
 
-class wrkNull(object):
+class wrkNull(wrkAbstract):
 
     def __init__(self):
         pass
