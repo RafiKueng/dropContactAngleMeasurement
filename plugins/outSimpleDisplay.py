@@ -40,15 +40,15 @@ class outSimpleDisplay(outAbstract):
         cv2.namedWindow('Output')
     
     def writeData(self, data):
-        print ' - outSimpleDisplay: display data @t: %f' % (time.time())
-        #print type(data[0])
-        #print data[0]
+        print ' - outSimpleDisplay: display data nr %.0f @t: %f' % (data[0], time.time())
+        #print type(data[1])
+        #print data[1]
         
-        cv2.imshow('Output', data[0])
+        cv2.imshow('Output', data[1])
         
         print ' - outSimpleDisplay: (sleeping) and waiting for key @t: %f' % (time.time())
         cv2.waitKey(1)
-        #time.sleep(0.001)
+        time.sleep(0.5)
 
 
 

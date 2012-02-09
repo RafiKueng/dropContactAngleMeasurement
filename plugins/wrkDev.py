@@ -22,6 +22,7 @@ class wrkDev(wrkAbstract):
     
     def procData(self, data):
         time.sleep(self.waittime)
+        #print ' - worker: ', data
         return data
         
 

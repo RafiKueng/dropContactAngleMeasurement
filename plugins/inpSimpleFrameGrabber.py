@@ -31,11 +31,12 @@ class inpSimpleFrameGrabber(inpAbstract):
         
     def getData(self):
         #video = cv2.VideoCapture('bin/testfile.mpg')
+        self.counter += 1
         print ' - inpSimpleFrameGrabber: read frame @t: %f' % (time.time())        
         ret, img = self.video.read()
-        print ' - inpSimpleFrameGrabber: frame read finish @t: %f' % (time.time())    
-        self.counter =+ 1
-        return [img, self.counter]
+        print ' - inpSimpleFrameGrabber: frame nr %.0f read finish @t: %f' % (self.counter, time.time())    
+        #print img
+        return [self.counter, img]
         
 
 

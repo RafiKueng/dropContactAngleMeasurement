@@ -27,7 +27,7 @@ import plugins.wrkDev as wrkDev
 import plugins.outSimpleDisplay as outSD
 
 
-testrange = range(0,10)
+testrange = range(0,100)
 
 
 
@@ -51,7 +51,7 @@ class InputHandler(mproc.Process):
         print '%s: run @t: %f' % (self.name, time.time())
         self.readers[0].setup('bin/testfile.mpg')
 
-        time.sleep(5)
+        #time.sleep(5)
         
         for i in testrange:
             print '---------------------------'
@@ -60,10 +60,11 @@ class InputHandler(mproc.Process):
             #time.sleep(3)            
             print '%s: send dataframe %.0f to %.0f @t: %f' % (self.name, i, i%2, time.time())
             self.datapipes[i%2].send(data)
-            time.sleep(1)
+            #time.sleep(1)
         
         
         #we're finished, sending signals to workers to close connection
+        #time.sleep(10)
         print '%s: finished, tell workers to shut down @t: %f' % (self.name, time.time())
         for pipe in self.datapipes:
             pipe.send(-1)
@@ -91,8 +92,11 @@ class WorkerHandler(mproc.Process):
         
     def run(self):
         print '%s: run @t: %f' % (self.name, time.time())
+        i=0
         
-        for i in testrange:
+        #for i in testrange:
+        while True:
+            i=+1
             print '%s: waiting for data %.0f @t: %f' % (self.name, i, time.time())
             data = self.datapipe.recv() #waits till it gets something
             print '%s: got data @t: %f' % (self.name, time.time())
@@ -103,7 +107,11 @@ class WorkerHandler(mproc.Process):
             
             #print time.clock()
             self.result_queue.put(data)
+        
+        #time.sleep(5)
+        self.result_queue.put([-1])
         print '%s: stopping @t: %f' % (self.name, time.time())
+    
         
 #    def __getstate__(self):
 #        return 'bla'
@@ -126,37 +134,52 @@ class OutputHandler(mproc.Process):
         self.result_queue = result_queue
         self.writers = writers
         #self.writers[0].init()
+        self.nrunningworkers = 2 #TODO: get this from super
         
     def run(self):
         print '%s: run @t: %f' % (self.name, time.time())
         self.writers[0].setup()
-        datacounter = 0
+        #datacounter = 0
         framecounter = 1
         buffer = [] #list used as heap queue (priority queue)
+        #heapq.heappush(buffer, (10000000, []))  #TODO this is only a workaround to prevent in "while buffer[0][0]..." invalid access (there is always at least one bigger than all others in the pipe)
         
-        for i in testrange:
-            #time.sleep(5)
+        #for i in testrange:
+        while True:
+            #time.sleep(0.2)
             print '%s: waiting for data @t: %f' % (self.name, time.time())
             data = self.result_queue.get()
-            datacounter =+ 1
-            print '%s: got dataframe nr %.0f from queue @t: %f' % (self.name, datacounter, time.time())
+            
+            #check if quit
+            #TODO: maybe do this better later, check if all worker not living (using signals) and queue empty            
+            if data[0] == -1:
+                self.nrunningworkers -= 1
+                if self.nrunningworkers == 0:
+                    break
+                continue
+            #time.sleep(0.5)
+            print '%s: got dataframe nr %.0f from queue @t: %f' % (self.name, data[0], time.time())
             
 #            for writer in self.writers:
 #                writer.writeData(data)            
             
-            if data[1] == framecounter:
-                print '%s: on time, write it @t: %f' % (self.name, datacounter, time.time())
-                framecounter =+ 1
+            if data[0] == framecounter:
+                print '%s: on time, write it @t: %f' % (self.name, time.time())
+                framecounter += 1
                 for writer in self.writers:
                     writer.writeData(data)
             else:
-                print '%s: ahead of time, write it @t: %f' % (self.name, datacounter, time.time())
-                heapq.heappush(buffer, data)
-                while buffer[0][1] == framecounter:
-                    data = heapq.heappop(buffer)
-                    framecounter =+ 1
-                    for writer in self.writers:
-                        writer.writeData(data)
+                print '%s: ahead of time, write it to buffer @t: %f' % (self.name, time.time())
+                #print 'data1', data
+                heapq.heappush(buffer, (data[0], data))
+                print '   len buffer:', len(buffer), buffer[0][0], framecounter, data[0]
+            while (len(buffer) > 0 and (buffer[0][0] == framecounter or data[0] >= framecounter+25)): # as soon as right frame is here OR more than 1 sec (25 frames) behind, continue painting
+                _, data = heapq.heappop(buffer)
+                #print 'data2', data
+                framecounter += 1
+                for writer in self.writers:
+                    writer.writeData(data)
+                    pass
 
         print '%s: stopping @t: %f' % (self.name, time.time())
         
@@ -189,7 +212,7 @@ def main():
                     datapipes[i][0], result_queue, [wrkDev.wrkDev()])
                 for i in xrange(num_workhandlers)]
                 
-    waittime = [3,2]
+    waittime = [0,0]
     for i, handler in enumerate(h_work):
         handler.setup(waittime[i])
                 
