@@ -36,15 +36,16 @@ class outSimpleDisplay(outAbstract):
     def __init__(self):
         pass
     
-    def setup(self):
-        cv2.namedWindow('Output')
+    def setup(self, id):
+        cv2.namedWindow('Output %s'%id)
+        self.id = id #id of element in datastream to display
     
     def writeData(self, data):
         print ' - outSimpleDisplay: display data nr %.0f @t: %f' % (data[0], time.time())
         #print type(data[1])
         #print data[1]
         
-        cv2.imshow('Output', data[1])
+        cv2.imshow('Output %s'%self.id, data[self.id])
         
         print ' - outSimpleDisplay: (sleeping) and waiting for key @t: %f' % (time.time())
         cv2.waitKey(1)
