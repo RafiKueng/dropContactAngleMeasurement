@@ -5,7 +5,7 @@ Created on Thu Feb 09 15:17:16 2012
 @author: rafik
 """
 
-from Abstract import wrkAbstract
+import Abstract as a
 
 import numpy as np
 import cv2
@@ -13,7 +13,7 @@ import random as rnd
 #import time
 
 
-class wrkEdgeFit(wrkAbstract):
+class wrkEdgeFit(a.BasicPlugin()):
 
     def __init__(self):
         pass
@@ -30,17 +30,9 @@ class wrkEdgeFit(wrkAbstract):
         #cv2.multiply(gray, 2, gray)    
 
 
-#    /---- doing threshold filtering ----
-        histmax, thres = histogram(gray)
-        bw = cv2.threshold(gray, thres, 255, cv2.THRESH_BINARY)[1]
-        bw = cv2.medianBlur(bw, 13)
-#    \------finished with contours
-
-
-
 #    /---- canny edge filtering ----
-        low_threshold = 100
-        edges = cv2.Canny(gray,low_threshold,low_threshold*3, edges, 3) # low_threshold*3 for high_treshold is recommended by canny
+        low_threshold = 70
+        edges = cv2.Canny(gray,low_threshold,low_threshold*5, edges, 3) # low_threshold*3 for high_treshold is recommended by canny
 
         mix1 = cv2.add(gray, edges) #construct red channel
         mix2 = cv2.subtract(gray, edges) # constuct blue, green channel
@@ -57,7 +49,16 @@ class wrkEdgeFit(wrkAbstract):
             cv2.drawContours(cont, contours, i, linecolor, 3)
 #    \------finished with contours
         
-       
+        print np.shape(contours)
+        contours.sort(key=len, reverse=True)
+#        for i, c in enumerate(contours):
+#            print i, len(c)
+        longestcontours = contours[0:2] #get the 2 longest contours
+#        for i, c in enumerate(longestcontours):
+#            print i, len(c)
+        
+        
+        
         #return color
         return cont        
 

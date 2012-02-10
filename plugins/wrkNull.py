@@ -8,21 +8,22 @@ Created on Tue Feb 07 15:17:12 2012
 @author: rafik
 """
 
-from Abstract import wrkAbstract
+import Abstract as a
 
 #import cv2
 import time
 
 
-class wrkNull(wrkAbstract):
+class wrkNull(a.BasePlugin):
 
     def __init__(self):
+        self.inputinfo = 
         pass
     
     def setup(self):
         pass
     
-    def procData(self, data):
+    def __call__(self, data):
         time.sleep(2)
         return data
         
