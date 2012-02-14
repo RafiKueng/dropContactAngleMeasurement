@@ -8,7 +8,7 @@ Created on Thu Feb 02 18:40:30 2012
 #from os import sys
 #import numpy as np
 
-from Abstract import outAbstract
+import helper as h
 
 import cv2
 import time
@@ -30,22 +30,39 @@ import time
 #print cv.GetCaptureProperty(file, cv.CV_CAP_PROP_FRAME_WIDTH)
 
 
-class outSimpleDisplay(outAbstract):
+class outSimpleDisplay(h.AbstractPlugin):
     
 
     def __init__(self):
-        pass
+        
+        inp0 = h.createDataDescriptor(
+            name="Framecounter",
+            describtion="",
+            datatype=h.Int)
+
+        inp1 = h.createDataDescriptor(
+            name="Frame",
+            describtion="The unprocceded frame, grabbed from video or camera",
+            datatype=h.Image,
+            embeddedtype=h.iAny)        
+            
+        self.inputinfo = [inp0, inp1]
+        self.outputinfo = None
+
+
     
-    def setup(self, id):
-        cv2.namedWindow('Output %s'%id)
-        self.id = id #id of element in datastream to display
+    def config(self):
+        cv2.namedWindow('Output %s'%self.inp_ch[1])
+        #self.id = id #id of element in datastream to display
+
+
     
-    def writeData(self, data):
-        print ' - outSimpleDisplay: display data nr %.0f @t: %f' % (data[0], time.time())
+    def __call__(self, data):
+        print ' - outSimpleDisplay: display data nr %.0f @t: %f' % (data[self.inp_ch[0]], time.time())
         #print type(data[1])
         #print data[1]
         
-        cv2.imshow('Output %s'%self.id, data[self.id])
+        cv2.imshow('Output %s'%self.inp_ch[1], data[self.inp_ch[1]])
         
         print ' - outSimpleDisplay: (sleeping) and waiting for key @t: %f' % (time.time())
         cv2.waitKey(1)

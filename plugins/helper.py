@@ -7,8 +7,9 @@ Created on Fri Feb 10 17:52:14 2012
 
 # def of datatypes that can be used in the datastream
 
-Undef = -1 #don't use this!!'
-None = 0
+
+#Undef = -1 #don't use this!!'
+#None = 0
 Bool = 1
 Int = 2
 Float = 3
@@ -20,15 +21,16 @@ List = 12
 Image = 13
 
 #image datatypes
-iBW = 20
-iGray = 21
-i8b = 22
-i16b = 23
-i32b = 24
+iAny = 20 
+iBW = 21
+iGray = 22
+i8b = 23
+i16b = 24
+i32b = 25
 
 
 
-def createDataDescriptor(name, describtion, datatype, embeddedtype):
+def createDataDescriptor(name, describtion, datatype, embeddedtype=None):
     """Helper to create a tuple describing elements in the datastream
 
     name: short name
@@ -37,7 +39,7 @@ def createDataDescriptor(name, describtion, datatype, embeddedtype):
     embtype: further classification for datatype (example: type of elements
             of a list, ...)
     """
-    return (name, desc, dtype, embtype)
+    return (name, describtion, datatype, embeddedtype)
     
     
     
@@ -49,8 +51,16 @@ class AbstractPlugin(object):
     def __init__(self):
         raise NotImplementedError
     
-    def setup(self, *args):
-        raise NotImplementedError
+    def setup(self, inp_ch=None):
+        """tells the plugin in which field of the datastream the expected 
+        inputs can be found"""
+        
+        if inp_ch == None and self.inputinfo == None:
+            self.inp_ch = None
+        elif len(self.inputinfo) == len(inp_ch):
+            self.inp_ch = inp_ch
+        else:
+            raise NotImplementedError, "some strage error occured"
         
     def config(self):
         raise NotImplementedError
@@ -58,8 +68,19 @@ class AbstractPlugin(object):
     def __call__(self, data):
         raise NotImplementedError
 
-    def getOutputInfo(self):
+    def getOutputInfo(self): #maybe get rid of these, since direct dataaccess is possible
         return self.outputinfo
         
     def getInputInfo(self):
         return self.inputinfo
+        
+    def check(self):
+        """check whether this plugin is coded the right way"""
+        success = True
+        
+        if success:
+            return True
+        else:
+            raise NotImplementedError, "The Plugin is not programmed the right way"
+        
+    

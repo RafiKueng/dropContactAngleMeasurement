@@ -8,21 +8,39 @@ Created on Tue Feb 07 15:17:12 2012
 @author: rafik
 """
 
-import Abstract as a
-import dytpes as dt
+import helper as h
 
-dt.
 #import cv2
 import time
 
 
-class wrkNull(a.BasePlugin):
+class wrkNull(h.AbstractPlugin):
 
     def __init__(self):
-        self.inputinfo = 
-        pass
+        
+        inp0 = h.createDataDescriptor(
+            name="Framecounter",
+            describtion="",
+            datatype=h.Int)
+            
+        inp1 = h.createDataDescriptor(
+            name="Frame",
+            describtion="The unprocceded frame, grabbed from video or camera",
+            datatype=h.Image,
+            embeddedtype=h.iAny)
+            
+        self.inputinfo = [inp0, inp1]
+        
+        out0 = h.createDataDescriptor(
+            name="Frame",
+            describtion="The unprocceded frame, grabbed from video or camera",
+            datatype=h.Image,
+            embeddedtype=h.iAny)        
+            
+        self.outputinfo = [out0]
+
     
-    def setup(self):
+    def config(self):
         pass
     
     def __call__(self, data):
@@ -32,5 +50,4 @@ class wrkNull(a.BasePlugin):
 
 if __name__ == '__main__':
     #getData()
-    pass
-    
+    pass    

@@ -5,10 +5,11 @@ Created on Thu Feb 02 18:40:30 2012
 @author: rafik
 """
 
+import helper as h
+
 #from os import sys
 #import numpy as np
 import cv2
-from Abstract import inpAbstract
 import time
 
 #file = cv.CaptureFromFile('bin/testfile.mpg')
@@ -16,20 +17,36 @@ import time
 
 
 
-class inpSimpleFrameGrabber(inpAbstract):
+class inpSimpleFrameGrabber(h.AbstractPlugin):
 
     def __init__(self):
         print ' - inpSimpleFrameGrabber: Init @t: %f' % (time.time())
-        #self.filename = 'bin/demo.avi'
+
+        self.inputinfo = None
+        
+        out0 = h.createDataDescriptor(
+            name="Framecounter",
+            describtion="",
+            datatype=h.Int)
+
+        out1 = h.createDataDescriptor(
+            name="Frame",
+            describtion="The unprocceded frame, grabbed from video or camera",
+            datatype=h.Image,
+            embeddedtype=h.iAny)        
+            
+        self.outputinfo = [out0, out1]
+
         self.counter = 0
-        pass
     
-    def setup(self, filename):
-        print ' - inpSimpleFrameGrabber: Setup @t: %f' % (time.time())
+
+    def config(self, filename):
+        print ' - inpSimpleFrameGrabber: config @t: %f' % (time.time())
         self.video = cv2.VideoCapture(filename)
         pass
         
-    def getData(self):
+
+    def __call__(self):
         #video = cv2.VideoCapture('bin/testfile.mpg')
         self.counter += 1
         print ' - inpSimpleFrameGrabber: read frame @t: %f' % (time.time())        

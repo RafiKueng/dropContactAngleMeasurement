@@ -5,7 +5,7 @@ Created on Thu Feb 09 15:17:16 2012
 @author: rafik
 """
 
-from Abstract import wrkAbstract
+import helper as h
 
 import numpy as np
 import cv2
@@ -13,19 +13,40 @@ import random as rnd
 #import time
 
 
-class wrkEdgeFit(wrkAbstract):
+class wrkEdgeFit(h.AbstractPlugin):
 
     def __init__(self):
+            
+        inp0 = h.createDataDescriptor(
+            name="Frame",
+            describtion="The unprocceded frame, grabbed from video or camera",
+            datatype=h.Image,
+            embeddedtype=h.iAny)
+            
+        self.inputinfo = [inp0]
+        
+        
+        
+        out0 = h.createDataDescriptor(
+            name="Proc'ed Frame",
+            describtion="The procceded frame, with applied filters",
+            datatype=h.Image,
+            embeddedtype=h.iAny)        
+            
+        self.outputinfo = [out0]
+
+
+        
+        
+    def config(self):
         pass
+
     
-    def setup(self):
-        pass
-    
-    def procData(self, data):
+    def __call__(self, data):
         #print data[1]
         #print max(data[1]), min(data[1])
-        gray = cv2.cvtColor(data[1], cv2.COLOR_BGR2GRAY) # convert to grayscale
-        edges = cv2.cvtColor(data[1], cv2.COLOR_BGR2GRAY)
+        gray = cv2.cvtColor(data[self.inp_ch[0]], cv2.COLOR_BGR2GRAY) # convert to grayscale
+        edges = cv2.cvtColor(data[self.inp_ch[0]], cv2.COLOR_BGR2GRAY)
         cont = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
         #cv2.multiply(gray, 2, gray)    
 
@@ -59,7 +80,7 @@ class wrkEdgeFit(wrkAbstract):
         
        
         #return color
-        return cont        
+        return [cont]        
 
 
 def histogram(picture, channels=[0]):
