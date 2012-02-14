@@ -9,7 +9,9 @@ Created on Tue Feb 07 15:17:12 2012
 """
 
 import Abstract as a
+import dytpes as dt
 
+dt.
 #import cv2
 import time
 
