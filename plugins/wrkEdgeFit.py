@@ -5,7 +5,7 @@ Created on Thu Feb 09 15:17:16 2012
 @author: rafik
 """
 
-import Abstract as a
+import helper as h
 
 import numpy as np
 import cv2
@@ -13,26 +13,46 @@ import random as rnd
 #import time
 
 
-class wrkEdgeFit(a.BasicPlugin()):
+class wrkEdgeFit(h.AbstractPlugin):
 
     def __init__(self):
+        
+        inp0 = h.createDataDescriptor(
+            name="Frame",
+            describtion="The unprocceded frame, grabbed from video or camera",
+            datatype=h.Image,
+            embeddedtype=h.iAny)
+            
+        self.inputinfo = [inp0]
+        
+        
+        
+        out0 = h.createDataDescriptor(
+            name="Contact angle",
+            describtion="The procceded frame, with applied filters",
+            datatype=h.Float)        
+            
+        self.outputinfo = [out0]
+    
+    def config(self):
         pass
     
-    def setup(self):
-        pass
-    
-    def procData(self, data):
+    def __call__(self, data):
         #print data[1]
         #print max(data[1]), min(data[1])
-        gray = cv2.cvtColor(data[1], cv2.COLOR_BGR2GRAY) # convert to grayscale
-        edges = cv2.cvtColor(data[1], cv2.COLOR_BGR2GRAY)
+        #print self.inp_ch
+        gray = cv2.cvtColor(data[self.inp_ch[0]], cv2.COLOR_BGR2GRAY) # convert to grayscale
+        edges = cv2.cvtColor(data[self.inp_ch[0]], cv2.COLOR_BGR2GRAY)
         cont = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
+        cont2 = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
+        cont3 = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
+        lineimg = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
         #cv2.multiply(gray, 2, gray)    
 
 
 #    /---- canny edge filtering ----
         low_threshold = 70
-        edges = cv2.Canny(gray,low_threshold,low_threshold*5, edges, 3) # low_threshold*3 for high_treshold is recommended by canny
+        edges = cv2.Canny(gray,low_threshold,low_threshold*5, edges, 3, L2gradient=True) # low_threshold*3 for high_treshold is recommended by canny
 
         mix1 = cv2.add(gray, edges) #construct red channel
         mix2 = cv2.subtract(gray, edges) # constuct blue, green channel
@@ -49,18 +69,116 @@ class wrkEdgeFit(a.BasicPlugin()):
             cv2.drawContours(cont, contours, i, linecolor, 3)
 #    \------finished with contours
         
-        print np.shape(contours)
+        #print np.shape(contours)
         contours.sort(key=len, reverse=True)
+        #print contours
 #        for i, c in enumerate(contours):
-#            print i, len(c)
-        longestcontours = contours[0:2] #get the 2 longest contours
+#            print i, len(c), np.shape(c), type(c)
+#            print i, len(c[0]), np.shape(c[0]), type(c[0])
+#            print i, len(c[0][0]), np.shape(c[0][0]), type(c[0][0])
+            #print c
+#        longestcontours = contours[0:2] #get the 2 longest contours
 #        for i, c in enumerate(longestcontours):
 #            print i, len(c)
         
+        """
+#    /--------get the pipette using regular hough transform
+        lines = cv2.HoughLines(edges, 1, np.pi/2., 50)[0]
+        print lines
+        print "min:", min(lines, key=lambda _: _[0]), "max:", max(lines, key=lambda _: _[0])
+        
+        #draw the lines        
+        for i, l in enumerate(lines):
+            print i, l
+            (rho, theta) = l
+            a = np.cos(theta)
+            b = np.sin(theta)
+            x0 = a * rho 
+            y0 = b * rho
+            pt1 = (int(x0 + 1000*(-b)), int(y0 + 1000*(a)))
+            pt2 = (int(x0 - 1000*(-b)), int(y0 - 1000*(a)))
+            cv2.line(lineimg, pt1, pt2, (255, 0, 0), 1, 8)
+#    \--------end getting the pipette
+"""
+# TODO: compare speed between the regular and the probabilistic hough transform
+
+#    /--------get the pipette using probabalistic hough transform
+        lines = cv2.HoughLinesP(edges, 50, np.pi, threshold=30, minLineLength=30, maxLineGap=20)[0]
+        #print lines
+        #print "min:", min(lines, key=lambda _: _[0]), "max:", max(lines, key=lambda _: _[0])
+        
+        pipette_x_min = min(lines, key=lambda _: _[0])[0] - 5 #substract 5 pix for safty
+        pipette_x_max = max(lines, key=lambda _: _[0])[0] + 5 #add saftey margin
+        pic_mid = (pipette_x_min+pipette_x_max)//2
+        
+        if len(lines)>4:
+            print " !! Attention: pipette detection encountered error"
+        #draw the lines        
+        for i, l in enumerate(lines):
+            #print i, l
+            x0, y0, x1, y1 = l
+            cv2.line(lineimg, (x0, y0), (x1, y1), (0, 0, 255), 2, 8)
+#    \--------end getting the pipette        
+        
+
+#    /------- distribute the found countour pixels to 2 sets of interessting points, left and right side
+
+        set_l = []
+        set_r = [] 
+        for contour in contours:
+            for points in contour:
+                for point in points:
+                    #print np.shape(point), len(point), type(point)
+                    if point[0]<pipette_x_min:
+                        set_l.append(np.array([point]))
+                    elif point[0]>pipette_x_max:
+                        set_r.append(np.array([point]))
+        
+        set_l.sort(key=lambda _: _[0][1])
+        set_r.sort(key=lambda _: _[0][1])
+        sets = np.array([np.array(set_l), np.array(set_r)])
+        #set_r=np.array(set_r)
+
+#        print "set l"
+#        print set_r
+#        print len(set_l), np.shape(set_l), type(set_l)
+#        print len(set_l[0]), np.shape(set_l[0]), type(set_l[0])
+#        print len(set_l[0][0]), np.shape(set_l[0][0]), type(set_l[0][0])
+#        print set_l
+        cv2.drawContours(cont2, sets, 0, (0,0,255), 0)
+        cv2.drawContours(cont2, sets, 1, (0,255,0), 0)
+
+#    \--------end distribute points 
+
+
+#    /------- get the mirror plane
+
+        set_l_bound = set_l[0][0][0]
+        selset_l = filter(lambda _: _[0][0]<set_l_bound,set_l)
+        set_l_xmin = min(selset_l, key=lambda _: _[0][0])
+        
+        set_r_bound = set_r[0][0][0]
+        selset_r = filter(lambda _: _[0][0]>set_r_bound,set_r)
+        set_r_xmax = max(selset_r, key=lambda _: _[0][0])
+
+        cv2.drawContours(cont3, np.array([np.array(selset_l)]), 0, (0,0,255), 0)
+        cv2.drawContours(cont3, np.array([np.array(selset_r)]), 0, (0,255,0), 0)
+
+        #fit the curves
+#        fitfunc = lambda p, x: np.abs(p[0]*x + p[1]) # Target function
+#        errfunc = lambda p, x, y: fitfunc(p, x) - y # Distance to the target function
+#        beta0 = [-15., 0.8, 0., -1.] # Initial guess for the parameters
+#        beta1, success = np.optimize.leastsq(errfunc, beta0[:], args=(Tx, tX))        
+        
+#    \--------end mirror plane 
         
         
-        #return color
-        return cont        
+        
+        #return [color] #return pictre with colored boundaries from canny edge detection 
+        #return [cont] #return the pic with found contours colored
+        #return [lineimg] # return the pictre with the pipette markers from hough line detetction
+        #return [cont2] # the connected contours, split in left and right side of pipette
+        return [cont2]
 
 
 def histogram(picture, channels=[0]):

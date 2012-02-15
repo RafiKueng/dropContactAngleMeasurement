@@ -60,7 +60,10 @@ class outSimpleDisplay(h.AbstractPlugin):
     def __call__(self, data):
         print ' - outSimpleDisplay: display data nr %.0f @t: %f' % (data[self.inp_ch[0]], time.time())
         #print type(data[1])
+        
+        #print data[0]
         #print data[1]
+        #print data[2]
         
         cv2.imshow('Output %s'%self.inp_ch[1], data[self.inp_ch[1]])
         
