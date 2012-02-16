@@ -26,7 +26,7 @@ class outHistogram(h.AbstractPlugin):
             name="Frame",
             describtion="The frame, whose histogram should be displayed",
             datatype=h.Image,
-            embeddedtype=h.iAny)        
+            embeddedtype=h.img_Any)        
             
         self.inputinfo = [inp0, inp1]
         self.outputinfo = None

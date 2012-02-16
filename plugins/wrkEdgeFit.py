@@ -8,6 +8,7 @@ Created on Thu Feb 09 15:17:16 2012
 import helper as h
 
 import numpy as np
+from scipy import optimize 
 import cv2
 import random as rnd
 #import time
@@ -21,7 +22,7 @@ class wrkEdgeFit(h.AbstractPlugin):
             name="Frame",
             describtion="The unprocceded frame, grabbed from video or camera",
             datatype=h.Image,
-            embeddedtype=h.iAny)
+            embeddedtype=h.img_Gray)
             
         self.inputinfo = [inp0]
         
@@ -38,21 +39,31 @@ class wrkEdgeFit(h.AbstractPlugin):
         pass
     
     def __call__(self, data):
-        #print data[1]
-        #print max(data[1]), min(data[1])
-        #print self.inp_ch
-        gray = cv2.cvtColor(data[self.inp_ch[0]], cv2.COLOR_BGR2GRAY) # convert to grayscale
-        edges = cv2.cvtColor(data[self.inp_ch[0]], cv2.COLOR_BGR2GRAY)
+
+        #gray = cv2.cvtColor(data[self.inp_ch[0]], cv2.COLOR_BGR2GRAY) # convert to grayscale
+        gray = data[self.inp_ch[0]]
+
+        edges = np.zeros(np.shape(gray), dtype=np.uint8)
+        thres = np.zeros(np.shape(gray), dtype=np.uint8)
+        
+        #edges = cv2.cvtColor(data[self.inp_ch[0]], cv2.COLOR_BGR2GRAY)
         cont = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
         cont2 = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
         cont3 = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
         lineimg = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
-        #cv2.multiply(gray, 2, gray)    
+
+#    /---- get more contrast ----
+        #gray = np.uint8(np.clip(np.uint32(gray) * 1.5, 0, 255))
+        th = histogram(gray)[1]        
+        #print th
+        thres = cv2.threshold(gray, th, 255, cv2.THRESH_BINARY)[1]
+#    \------end contrast
+
 
 
 #    /---- canny edge filtering ----
-        low_threshold = 70
-        edges = cv2.Canny(gray,low_threshold,low_threshold*5, edges, 3, L2gradient=True) # low_threshold*3 for high_treshold is recommended by canny
+        low_threshold = 50
+        edges = cv2.Canny(gray,low_threshold,low_threshold*7, edges, 3, L2gradient=True) # low_threshold*3 for high_treshold is recommended by canny
 
         mix1 = cv2.add(gray, edges) #construct red channel
         mix2 = cv2.subtract(gray, edges) # constuct blue, green channel
@@ -150,25 +161,113 @@ class wrkEdgeFit(h.AbstractPlugin):
 
 #    \--------end distribute points 
 
+#    /------- get the mirror plane by taking the furthest pixels
 
-#    /------- get the mirror plane
-
-        set_l_bound = set_l[0][0][0]
-        selset_l = filter(lambda _: _[0][0]<set_l_bound,set_l)
-        set_l_xmin = min(selset_l, key=lambda _: _[0][0])
+#        set_l_xmin = min(set_l, key=lambda _: _[0][0])
+#        set_r_xmax = max(set_l, key=lambda _: _[0][0])
         
-        set_r_bound = set_r[0][0][0]
-        selset_r = filter(lambda _: _[0][0]>set_r_bound,set_r)
-        set_r_xmax = max(selset_r, key=lambda _: _[0][0])
+#        max_val = 0
+#        max_indices = []
+#        max_y = []
+#        for i, val in enumerate(set_r):
+#            if val[0][0] < max_val: continue
+#            if val[0][0] == max_val:
+#                max_indices.append(i)
+#                max_y.append(val[0][1])
+#            else:
+#                max_val = val[0][0]
+#                max_indices = [i]   
+#                max_y = [val[0][1]]
+#                
+#        print max_val, max_indices, max_y
+        
+        
+        
+        max_x = 0
+        max_indices = []
+        y_at_max_x = []
+        for i, val in enumerate(set_r):
+            if val[0][0] < max_x: continue
+            if val[0][0] == max_x:
+                max_indices.append(i)
+                y_at_max_x.append(val[0][1])
+            else:
+                max_x = val[0][0]
+                max_indices = [i] 
+                y_at_max_x = [val[0][1]]
+                
+        y_at_max_x_mean = np.int(sum(y_at_max_x)/len(y_at_max_x))
+        
+        print max_x, y_at_max_x, y_at_max_x_mean
+        print max_indices
 
-        cv2.drawContours(cont3, np.array([np.array(selset_l)]), 0, (0,0,255), 0)
-        cv2.drawContours(cont3, np.array([np.array(selset_r)]), 0, (0,255,0), 0)
 
-        #fit the curves
-#        fitfunc = lambda p, x: np.abs(p[0]*x + p[1]) # Target function
+        min_x = 100000
+        min_indices = []
+        y_at_min_x = []
+        for i, val in enumerate(set_l):
+            if val[0][0] > min_x: continue
+            if val[0][0] == min_x:
+                min_indices.append(i)
+                y_at_min_x.append(val[0][1])
+            else:
+                min_x = val[0][0]
+                min_indices = [i] 
+                y_at_min_x = [val[0][1]]
+                
+        y_at_min_x_mean = np.int(sum(y_at_min_x)/len(y_at_min_x))
+
+        print min_x, y_at_min_x, y_at_min_x_mean
+        print min_indices
+
+        #TODO: add check if this point is a corner (then its index isnt the first one)
+        #otherwise it isn't reliable
+
+        cv2.line(cont3, (max_x, y_at_max_x_mean), (min_x, y_at_min_x_mean), (0,0,255), 2)
+
+
+#    \--------end mirror plane 
+
+
+#    /------- get the mirror plane by approximating a poly at the edge
+
+#        cords_x = []
+#        cords_y = []
+#        #print set_l
+#        set_l_bound = set_l[0][0][0]
+#        #print set_l_bound
+#        #print set_l[0][0]
+#        selset_l = filter(lambda _: _[0][0]<=set_l_bound,set_l)
+#        #print selset_l
+#        if len(selset_l) >0:
+#            set_l_xmin = min(selset_l, key=lambda _: _[0][0])
+##            for i in selset_l:
+##                cords_x.append(i[0][1])
+##                cords_y.append(i[0][0])                
+#        
+#        set_r_bound = set_r[0][0][0]
+#        selset_r = filter(lambda _: _[0][0]>=set_r_bound,set_r)
+#        if len(selset_r) >0:
+#            set_r_xmax = max(selset_r, key=lambda _: _[0][0])
+#            for i in selset_r:
+#                print i[0][0], i[0][1]
+#                cords_x.append(i[0][1])
+#                cords_y.append(i[0][0])       
+#                
+#                
+#        cv2.drawContours(cont3, np.array([np.array(selset_l)]), 0, (0,0,255), 0)
+#        cv2.drawContours(cont3, np.array([np.array(selset_r)]), 0, (0,255,0), 0)
+#
+#        #print selset_r
+#
+#        #fit the curves
+#        
+#        fitfunc = lambda p, x: np.abs(p[0]*(x - p[1])) + p[2] # Target function
 #        errfunc = lambda p, x, y: fitfunc(p, x) - y # Distance to the target function
-#        beta0 = [-15., 0.8, 0., -1.] # Initial guess for the parameters
-#        beta1, success = np.optimize.leastsq(errfunc, beta0[:], args=(Tx, tX))        
+#        beta0 = [0.1, 1100., 380.] # Initial guess for the parameters
+#        
+#        res = optimize.leastsq(errfunc, beta0[:], args=(np.array(cords_x), np.array(cords_y)))   
+#        print res
         
 #    \--------end mirror plane 
         
@@ -178,7 +277,7 @@ class wrkEdgeFit(h.AbstractPlugin):
         #return [cont] #return the pic with found contours colored
         #return [lineimg] # return the pictre with the pipette markers from hough line detetction
         #return [cont2] # the connected contours, split in left and right side of pipette
-        return [cont2]
+        return [cont3]
 
 
 def histogram(picture, channels=[0]):
@@ -205,9 +304,25 @@ def histogram(picture, channels=[0]):
         if hist[i]<0.2:
             thres = i
             break
-    print hist_max, thres
+    #print hist_max, thres
     return hist_max, thres
 
+
+
+def maxelements(seq): # @John Machin
+    ''' Return list of position(s) of largest element
+    source: http://stackoverflow.com/questions/3989016/how-to-find-positions-of-the-list-maximum'''
+    if not seq: return []
+    max_val = seq[0] if seq[0] >= seq[-1] else seq[-1]
+    max_indices = []
+    for i, val in enumerate(seq):
+        if val < max_val: continue
+        if val == max_val:
+            max_indices.append(i)
+        else:
+            max_val = val
+            max_indices = [i]
+    return max_val, max_indices
 
 
 

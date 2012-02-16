@@ -39,21 +39,21 @@ inp1.setup()
 #wrk1.setup([1])
 wrk2.setup([1])
 
-#out0.setup([0,1])
-out1.setup([0,1])
+out0.setup([0,1])
+out1.setup([0,2])
 
 
 
 
 
 inp.config('bin/demo.avi')
-inp1.config('bin/demo.avi', 3)
+inp1.config('bin/demo.avi', 5)
 
 #wrk0.config()
 #wrk1.config()
 wrk2.config()
 
-#out0.config()
+out0.config()
 out1.config()
 
 
@@ -62,12 +62,13 @@ out1.config()
 
 data = []
 
-inp()
+#inp()
 
 data.extend(inp1())
+
 #data.extend(wrk0(data))
 #data.extend(wrk1(data))
-#data.extend(wrk2(data))
+data.extend(wrk2(data))
 
 #out0(data)
 out1(data)

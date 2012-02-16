@@ -33,7 +33,7 @@ class inpSimpleFrameGrabber(h.AbstractPlugin):
             name="Frame",
             describtion="The unprocceded frame, grabbed from video or camera",
             datatype=h.Image,
-            embeddedtype=h.iAny)        
+            embeddedtype=h.img_Any)        
             
         self.outputinfo = [out0, out1]
 

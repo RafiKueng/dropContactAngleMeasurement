@@ -21,16 +21,16 @@ List = 12
 Image = 13
 
 #image datatypes
-iAny = 20 
-iBW = 21
-iGray = 22
-i8b = 23
-i16b = 24
-i32b = 25
+img_Any = 20 
+img_BW = 21
+img_Gray = 22
+img_8b = 23
+img_16b = 24
+img_32b = 25
 
 
 
-def createDataDescriptor(name, describtion, datatype, embeddedtype=None):
+def createDataDescriptor(name, describtion, datatype, embeddedtype=None, unit="1"):
     """Helper to create a tuple describing elements in the datastream
 
     name: short name
@@ -38,8 +38,9 @@ def createDataDescriptor(name, describtion, datatype, embeddedtype=None):
     dtype: basic datatype
     embtype: further classification for datatype (example: type of elements
             of a list, ...)
+    unit: the si unit (as a string)
     """
-    return (name, describtion, datatype, embeddedtype)
+    return (name, describtion, datatype, embeddedtype, unit)
     
     
     
