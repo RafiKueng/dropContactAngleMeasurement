@@ -5,7 +5,7 @@ Created on Wed Feb 08 16:59:26 2012
 @author: rafik
 """
 
-#import time
+import time
 import cv2
 
 import plugins.inpSimpleFrameGrabber as inpSFG
@@ -63,12 +63,24 @@ out1.config()
 data = []
 
 #inp()
-
 data.extend(inp1())
+
+
+
+
+
 
 #data.extend(wrk0(data))
 #data.extend(wrk1(data))
 data.extend(wrk2(data))
+n=50
+t1=time.clock()
+for i in range(n):
+    wrk2(data)
+t2=time.clock()
+print "time taken:", (t2-t1) / n
+#print data
+
 
 #out0(data)
 out1(data)

@@ -171,7 +171,7 @@ class OutputHandler(mproc.Process):
             else:
                 print '%s: ahead of time, write it to buffer @t: %f' % (self.name, time.time())
                 #print 'data1', data
-                heapq.heappush(buffer, (data[0], data))
+                heapq.heappush(buffer, (data[0], data)) #makes already sure the elements in heapq are sorted!!
                 print '   len buffer:', len(buffer), buffer[0][0], framecounter, data[0]
             while (len(buffer) > 0 and (buffer[0][0] == framecounter or data[0] >= framecounter+25)): # as soon as right frame is here OR more than 1 sec (25 frames) behind, continue painting
                 _, data = heapq.heappop(buffer)

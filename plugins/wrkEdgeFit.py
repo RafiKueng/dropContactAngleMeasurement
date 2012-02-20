@@ -46,19 +46,19 @@ class wrkEdgeFit(h.AbstractPlugin):
         gray = data[self.inp_ch[0]]
 
         edges = np.zeros(np.shape(gray), dtype=np.uint8)
-        thres = np.zeros(np.shape(gray), dtype=np.uint8)
+#        thres = np.zeros(np.shape(gray), dtype=np.uint8)
         
         #edges = cv2.cvtColor(data[self.inp_ch[0]], cv2.COLOR_BGR2GRAY)
-        cont = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
-        cont2 = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
+#        cont = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
+#        cont2 = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
         cont3 = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
-        lineimg = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
+#        lineimg = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
 
 #    /---- get more contrast ----
         #gray = np.uint8(np.clip(np.uint32(gray) * 1.5, 0, 255))
-        th = histogram(gray)[1]        
+#        th = histogram(gray)[1]        
         #print th
-        thres = cv2.threshold(gray, th, 255, cv2.THRESH_BINARY)[1]
+#        thres = cv2.threshold(gray, th, 255, cv2.THRESH_BINARY)[1]
 #    \------end contrast
 
 
@@ -67,23 +67,23 @@ class wrkEdgeFit(h.AbstractPlugin):
         low_threshold = 50
         edges = cv2.Canny(gray,low_threshold,low_threshold*7, edges, 3, L2gradient=True) # low_threshold*3 for high_treshold is recommended by canny
 
-        mix1 = cv2.add(gray, edges) #construct red channel
-        mix2 = cv2.subtract(gray, edges) # constuct blue, green channel
-        color = cv2.merge([mix2, mix2, mix1])
+#        mix1 = cv2.add(gray, edges) #construct red channel
+#        mix2 = cv2.subtract(gray, edges) # constuct blue, green channel
+#        color = cv2.merge([mix2, mix2, mix1])
 #    \------finished canny
         
         
         
 #    /---- getting contours ----
         contours, hir = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-        for i, c in enumerate(contours):
-            
-            linecolor  = (rnd.randint(0,255), rnd.randint(0,255), rnd.randint(0,255))
-            cv2.drawContours(cont, contours, i, linecolor, 3)
+#        for i, c in enumerate(contours):
+#            
+#            linecolor  = (rnd.randint(0,255), rnd.randint(0,255), rnd.randint(0,255))
+#            cv2.drawContours(cont, contours, i, linecolor, 3)
 #    \------finished with contours
         
         #print np.shape(contours)
-        contours.sort(key=len, reverse=True)
+        #contours.sort(key=len, reverse=True)
         #print contours
 #        for i, c in enumerate(contours):
 #            print i, len(c), np.shape(c), type(c)
@@ -127,10 +127,10 @@ class wrkEdgeFit(h.AbstractPlugin):
         if len(lines)>4:
             print " !! Attention: pipette detection encountered error"
         #draw the lines        
-        for i, l in enumerate(lines):
-            #print i, l
-            x0, y0, x1, y1 = l
-            cv2.line(lineimg, (x0, y0), (x1, y1), (0, 0, 255), 2, 8)
+#        for i, l in enumerate(lines):
+#            #print i, l
+#            x0, y0, x1, y1 = l
+#            cv2.line(lineimg, (x0, y0), (x1, y1), (0, 0, 255), 2, 8)
 #    \--------end getting the pipette        
         
 
@@ -158,8 +158,8 @@ class wrkEdgeFit(h.AbstractPlugin):
 #        print len(set_l[0]), np.shape(set_l[0]), type(set_l[0])
 #        print len(set_l[0][0]), np.shape(set_l[0][0]), type(set_l[0][0])
 #        print set_l
-        cv2.drawContours(cont2, sets, 0, (0,0,255), 0)
-        cv2.drawContours(cont2, sets, 1, (0,255,0), 0)
+        #cv2.drawContours(cont2, sets, 0, (0,0,255), 0)
+        #cv2.drawContours(cont2, sets, 1, (0,255,0), 0)
 
 #    \--------end distribute points 
 
@@ -297,7 +297,7 @@ class wrkEdgeFit(h.AbstractPlugin):
             if len(sets[i]) != 0:
                 x = sets[i][:,0,0]
                 y = [flip(y) for y in sets[i][:,0,1]]
-                z = np.polyfit(x, y, 13)
+                z = np.polyfit(x, y, 6)
                 #print z
                 poly = np.poly1d(z)
                 z2 = z.copy()
@@ -306,7 +306,7 @@ class wrkEdgeFit(h.AbstractPlugin):
                 shift = np.poly1d(z2)
                 roots = np.roots(shift)
                 
-                print roots
+                #print roots
 
                 if i==0: #left side
                     x_max = max(np.real(x))
@@ -322,17 +322,17 @@ class wrkEdgeFit(h.AbstractPlugin):
                 angle[i] = abs(np.arctan(slope))*180/np.pi
                 fitline = np.poly1d([slope, poly(root)-slope*root])
                 
-                print fitline
-                print roots
-                print 'root:', root, 'slope:', slope, 'angle:', angle[i]
+                #print fitline
+                #print roots
+                #print 'root:', root, 'slope:', slope, 'angle:', angle[i]
                 
                 xp = range(1,1279)
                 yp = np.int32(np.clip(poly(xp),0,1023))
                 pnts = np.array([np.column_stack((xp, yp))])
 
-                plt.plot(x,y,'.', xp, poly(xp),'-', xp, shift(xp),'b--', xp, fitline(xp), 'r-')
-                plt.ylim(0,1024)
-                plt.show()
+#                plt.plot(x,y,'.', xp, poly(xp),'-', xp, shift(xp),'b--', xp, fitline(xp), 'r-')
+#                plt.ylim(0,1024)
+#                plt.show()
                 
                 cv2.polylines(cont3, pnts, False, (255,255*i,0), 1)
                 
@@ -357,19 +357,19 @@ def histogram(picture, channels=[0]):
     cv2.normalize(hist, hist, 0, 1, cv2.NORM_MINMAX);
     #print hist
     bin_count = hist.shape[0]
-    bin_w = 2
-    bin_max_h = 200
-    img = np.ones((int(bin_max_h*1.1), bin_count*bin_w, 3), np.uint8)*[70,255,255]*255 #last list is background color
+    #bin_w = 2
+    #bin_max_h = 200
+    #img = np.ones((int(bin_max_h*1.1), bin_count*bin_w, 3), np.uint8)*[70,255,255]*255 #last list is background color
 
     #print hist
     for i in xrange(bin_count):
         val = hist[i]
         if val==1: hist_max = i #find the size and the pos of the max
-        h = int(val*bin_max_h)
+        #h = int(val*bin_max_h)
         #print h
-        cv2.rectangle(img, (i*bin_w+2, int(bin_max_h*1.1)), ((i+1)*bin_w-2, int(bin_max_h*1.1)-h), [int(255*255.0*i/bin_count)]*3, -1)
+        #cv2.rectangle(img, (i*bin_w+2, int(bin_max_h*1.1)), ((i+1)*bin_w-2, int(bin_max_h*1.1)-h), [int(255*255.0*i/bin_count)]*3, -1)
     #img = cv2.cvtColor(img, cv2.COLOR_HSV2BGR)
-    cv2.imshow('hist', img)       
+    #cv2.imshow('hist', img)       
 
     for i in xrange(hist_max, bin_count):
         if hist[i]<0.2:
