@@ -8,6 +8,8 @@ Created on Thu Feb 09 15:17:16 2012
 import helper as h
 
 import numpy as np
+import matplotlib.pyplot as plt
+
 from scipy import optimize 
 import cv2
 import random as rnd
@@ -196,10 +198,10 @@ class wrkEdgeFit(h.AbstractPlugin):
                 max_indices = [i] 
                 y_at_max_x = [val[0][1]]
                 
-        y_at_max_x_mean = np.int(sum(y_at_max_x)/len(y_at_max_x))
+        #y_at_max_x_mean = np.int(sum(y_at_max_x)/len(y_at_max_x))
         
-        print max_x, y_at_max_x, y_at_max_x_mean
-        print max_indices
+        #print max_x, y_at_max_x, y_at_max_x_mean
+        #print max_indices
 
 
         min_x = 100000
@@ -215,15 +217,26 @@ class wrkEdgeFit(h.AbstractPlugin):
                 min_indices = [i] 
                 y_at_min_x = [val[0][1]]
                 
-        y_at_min_x_mean = np.int(sum(y_at_min_x)/len(y_at_min_x))
+        #y_at_min_x_mean = np.int(sum(y_at_min_x)/len(y_at_min_x))
 
-        print min_x, y_at_min_x, y_at_min_x_mean
-        print min_indices
+        #print min_x, y_at_min_x, y_at_min_x_mean
+        #print min_indices
 
-        #TODO: add check if this point is a corner (then its index isnt the first one)
+        #check if this point is a corner (then its index isnt the first one)
         #otherwise it isn't reliable
+        if len(min_indices) < 1 and len(max_indices) < 1:       
+            print "!! critical error in baseline finding..."
+        elif len(min_indices) == 1 and min_indices[0] == 0 and len(max_indices) == 1 and max_indices[0] == 0:
+            print "!! error: no baseline found at all, using previous"
+        elif len(min_indices) == 1 and min_indices[0] == 0 and max_indices[0] > 0:
+            baseline_pos = np.int(sum(y_at_max_x)/len(y_at_max_x))
+        elif len(max_indices) == 1 and max_indices[0] == 0 and min_indices[0] > 0:
+            baseline_pos = np.int(sum(y_at_min_x)/len(y_at_min_x))
+        else:
+            baseline_pos = np.int((sum(y_at_max_x)+sum(y_at_min_x))/(len(y_at_max_x)+len(y_at_min_x)))
 
-        cv2.line(cont3, (max_x, y_at_max_x_mean), (min_x, y_at_min_x_mean), (0,0,255), 2)
+
+        cv2.line(cont3, (1, baseline_pos), (1279, baseline_pos), (0,255,255), 1)
 
 
 #    \--------end mirror plane 
@@ -271,6 +284,64 @@ class wrkEdgeFit(h.AbstractPlugin):
         
 #    \--------end mirror plane 
         
+        
+#    /------- fitting a poly to the contour
+        def flip(x):
+            if x < baseline_pos:
+                return 2*baseline_pos - x
+            else:
+                return x
+
+        angle = [0.0,0.0]
+        for i in [0,1]:
+            if len(sets[i]) != 0:
+                x = sets[i][:,0,0]
+                y = [flip(y) for y in sets[i][:,0,1]]
+                z = np.polyfit(x, y, 13)
+                #print z
+                poly = np.poly1d(z)
+                z2 = z.copy()
+                z2[-1] -= baseline_pos          
+                #print z2
+                shift = np.poly1d(z2)
+                roots = np.roots(shift)
+                
+                print roots
+
+                if i==0: #left side
+                    x_max = max(np.real(x))
+                    roots = filter(lambda _x: np.isreal(_x) and _x>0 and _x<x_max, roots)
+                    root = np.int(np.real(max(roots)))
+                else: #right side
+                    x_min = min(np.real(x))
+                    roots = filter(lambda _x: np.isreal(_x) and _x>x_min and _x<1280, roots)
+                    root = np.int(np.real(min(roots)))
+                
+                deriv = poly.deriv()
+                slope = deriv(root)
+                angle[i] = abs(np.arctan(slope))*180/np.pi
+                fitline = np.poly1d([slope, poly(root)-slope*root])
+                
+                print fitline
+                print roots
+                print 'root:', root, 'slope:', slope, 'angle:', angle[i]
+                
+                xp = range(1,1279)
+                yp = np.int32(np.clip(poly(xp),0,1023))
+                pnts = np.array([np.column_stack((xp, yp))])
+
+                plt.plot(x,y,'.', xp, poly(xp),'-', xp, shift(xp),'b--', xp, fitline(xp), 'r-')
+                plt.ylim(0,1024)
+                plt.show()
+                
+                cv2.polylines(cont3, pnts, False, (255,255*i,0), 1)
+                
+                dx = 200
+                cv2.line(cont3, (root-dx, int(fitline(root-dx))), (root+dx, int(fitline(root+dx))), (0,0,255), 1)
+        
+
+#    \--------end fit
+
         
         
         #return [color] #return pictre with colored boundaries from canny edge detection 

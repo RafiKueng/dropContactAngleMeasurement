@@ -47,7 +47,7 @@ out1.setup([0,2])
 
 
 inp.config('bin/demo.avi')
-inp1.config('bin/demo.avi', 5)
+inp1.config('bin/demo.avi', 3)
 
 #wrk0.config()
 #wrk1.config()

@@ -8,7 +8,7 @@ Created on Fri Feb 10 17:52:14 2012
 # def of datatypes that can be used in the datastream
 
 
-#Undef = -1 #don't use this!!'
+#Undef = -1 #don't use this!!
 #None = 0
 Bool = 1
 Int = 2
