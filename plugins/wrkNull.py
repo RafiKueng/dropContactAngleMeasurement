@@ -27,7 +27,7 @@ class wrkNull(h.AbstractPlugin):
             name="Frame",
             describtion="The unprocceded frame, grabbed from video or camera",
             datatype=h.Image,
-            embeddedtype=h.iAny)
+            embeddedtype=h.img_Any)
             
         self.inputinfo = [inp0, inp1]
         

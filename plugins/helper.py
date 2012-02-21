@@ -5,8 +5,14 @@ Created on Fri Feb 10 17:52:14 2012
 @author: rafik
 """
 
-# def of datatypes that can be used in the datastream
+#def of types for plugins
+class plugintype:
+    #None = 0 = None
+    Reader = 1
+    Worker = 2
+    Writer = 3
 
+# def of datatypes that can be used in the datastream
 
 #Undef = -1 #don't use this!!
 #None = 0
@@ -19,6 +25,7 @@ Array = 10
 Matrix = 11
 List = 12
 Image = 13
+String = 14
 
 #image datatypes
 img_Any = 20 
@@ -49,6 +56,8 @@ class AbstractPlugin(object):
     """Basic / Abstract class for plugins. each plugin should inherit from
     this class and implement the methods
     """
+    
+
     def __init__(self):
         raise NotImplementedError
     
@@ -71,7 +80,9 @@ class AbstractPlugin(object):
 
     def getOutputInfo(self): #maybe get rid of these, since direct dataaccess is possible
         return self.outputinfo
-        
+
+    __type__ = None 
+
     def getInputInfo(self):
         return self.inputinfo
         

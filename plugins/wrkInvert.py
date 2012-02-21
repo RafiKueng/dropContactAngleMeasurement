@@ -15,6 +15,7 @@ import time
 
 
 class wrkInvert(h.AbstractPlugin):
+    #__type__='egal'
 
     def __init__(self):
             
@@ -22,7 +23,7 @@ class wrkInvert(h.AbstractPlugin):
             name="Frame",
             describtion="The unprocceded frame, grabbed from video or camera",
             datatype=h.Image,
-            embeddedtype=h.iAny)
+            embeddedtype=h.img_Any)
             
         self.inputinfo = [inp0]
         
@@ -30,7 +31,7 @@ class wrkInvert(h.AbstractPlugin):
             name="TransposedFrame",
             describtion="the same frame, transposed",
             datatype=h.Image,
-            embeddedtype=h.iAny)        
+            embeddedtype=h.img_Any)        
             
         self.outputinfo = [out0]
 
