@@ -1,0 +1,73 @@
+PROJECT: drop C ontact A ngle M easurement
+
+
+
+Time management / planning:
+
+- 22.2.: test in the lab, on the lab computer with actual measurement.
+- 27.2.: program should be basically running, with basic gui or console
+- 5.3.: deadline for finished program and gui, beta tested and fully documented.
+I didn't keep track of the detailed, actual hours spent on the project, but I supppose I'm around 50-60, I expect ca. 20 more needed...
+
+
+detailled status:
+
+- Basic algorithms: 2 of 4 done
+ * planning / reading / preparations: done
+ * design: done
+ * implementation: 67%
+   + nox / potentiostat data reader: missing
+   + webcam reader: done
+   + video file reader: done
+   + data analyser: done
+   + simple output: done
+   + plotting function; missing
+ * fine tuning / stability tests: 25%
+
+- Back end: 1 of 4 done
+ * general: 50%
+ * multi threading: done
+ * plug in system: 50%
+ * helper classes: 75%
+
+- front end / GUI: 1 of 2 done
+ * planning / design: done
+ * implementation: 0%
+   + general process flow: missing
+   + load: missing
+   + setup: missing
+   + config: missing
+   + run / working: missing
+
+- Cleaning up / documentation: 0 of 5 done
+ * code documentation: 75%
+ * end user documentation: 0%
+ * plug-in / script development doc: 25%
+ * cleaning up code: 0%
+ * debugging / beta testing: 25%
+
+
+
+Design Details:
+
+- principle: easy to use:
+ * intuitive gui
+ * produce publishable results / plots on the fly
+ * easy data export to excel, matlab, ...
+
+- easy to extend: plug in based design. Easy addition of
+ * other data sources (other lab devices)
+ * processing routines 
+ * output capabilities
+ * in c/c++ and python, possibly matlab, IGOR
+
+- languages:
+ * gui & basic program in python
+ * speed critical parts in C / C++ (using opencv library)
+
+- design principles:
+ * all in one: no need for external tools
+ * multi threaded for speed
+ * life / lab working mode (see life results)
+[* real time measurement mode (analyse while recording with full precession)]
+ * off line / office working mode: process recorded data streams
