@@ -33,11 +33,11 @@ class inpSimpleFrameGrabber(h.AbstractPlugin):
             name="Frame",
             describtion="The unprocceded frame, grabbed from video or camera",
             datatype=h.Image,
-            embeddedtype=h.img_Any)        
+            embeddedtype=h.img_Gray)        
             
         self.outputinfo = [out0, out1]
 
-        self.counter = 0
+        self.counter = -1
     
 
     def config(self, filename):
@@ -47,10 +47,10 @@ class inpSimpleFrameGrabber(h.AbstractPlugin):
         
 
     def __call__(self):
-        #video = cv2.VideoCapture('bin/testfile.mpg')
+
         self.counter += 1
         print ' - inpSimpleFrameGrabber: read frame @t: %f' % (time.time())        
-        ret, img = self.video.read()
+        img = cv2.cvtColor(self.video.read()[1], cv2.COLOR_BGR2GRAY)
         print ' - inpSimpleFrameGrabber: frame nr %.0f read finish @t: %f' % (self.counter, time.time())    
         #print img
         return [self.counter, img]

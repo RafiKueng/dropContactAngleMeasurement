@@ -21,7 +21,8 @@ import cv2.cv as cv
 #cv.WaitKey(0)
 
 
-file = cv.CaptureFromFile('../bin/testfile.mpg')
+file = cv.CaptureFromFile('../../bin/testfile.mpg')
+file = cv.CaptureFromFile('0')
 
 print cv.GetCaptureProperty(file, cv.CV_CAP_PROP_FRAME_WIDTH)
 
@@ -32,8 +33,8 @@ def getData():
     cv.GrabFrame(file)    
     img = cv.RetrieveFrame(file)
     cv.ShowImage("win", img)
-    #cv.WaitKey(0)
+    cv.WaitKey(0)
 
 if __name__ == '__main__':
-    #getData()
+    getData()
     pass

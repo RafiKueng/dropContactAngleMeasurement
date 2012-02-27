@@ -48,12 +48,13 @@ detailled status:
 
 
 
-Design Details:
+Design Principles:
 
-- principle: easy to use:
+- easy to use:
  * intuitive gui
  * produce publishable results / plots on the fly
  * easy data export to excel, matlab, ...
+ * possibly portable (win / linux / mac)
 
 - easy to extend: plug in based design. Easy addition of
  * other data sources (other lab devices)
@@ -65,7 +66,7 @@ Design Details:
  * gui & basic program in python
  * speed critical parts in C / C++ (using opencv library)
 
-- design principles:
+- ideas:
  * all in one: no need for external tools
  * multi threaded for speed
  * life / lab working mode (see life results)

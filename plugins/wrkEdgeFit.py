@@ -38,6 +38,7 @@ class wrkEdgeFit(h.AbstractPlugin):
         self.outputinfo = [out0]
     
     def config(self):
+        self.baseline = 377
         pass
     
     def __call__(self, data):
@@ -49,13 +50,13 @@ class wrkEdgeFit(h.AbstractPlugin):
 #        thres = np.zeros(np.shape(gray), dtype=np.uint8)
         
         #edges = cv2.cvtColor(data[self.inp_ch[0]], cv2.COLOR_BGR2GRAY)
-#        cont = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
+        #cont = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
 #        cont2 = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
         cont3 = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
 #        lineimg = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
 
 #    /---- get more contrast ----
-        #gray = np.uint8(np.clip(np.uint32(gray) * 1.5, 0, 255))
+        gray = np.uint8(np.clip(np.uint32(gray) * 1.1, 0, 255))
 #        th = histogram(gray)[1]        
         #print th
 #        thres = cv2.threshold(gray, th, 255, cv2.THRESH_BINARY)[1]
@@ -67,19 +68,20 @@ class wrkEdgeFit(h.AbstractPlugin):
         low_threshold = 50
         edges = cv2.Canny(gray,low_threshold,low_threshold*7, edges, 3, L2gradient=True) # low_threshold*3 for high_treshold is recommended by canny
 
-#        mix1 = cv2.add(gray, edges) #construct red channel
-#        mix2 = cv2.subtract(gray, edges) # constuct blue, green channel
-#        color = cv2.merge([mix2, mix2, mix1])
+        mix1 = cv2.add(gray, edges) #construct red channel
+        mix2 = cv2.subtract(gray, edges) # constuct blue, green channel
+        cont3 = cv2.merge([mix2, mix2, mix1])
 #    \------finished canny
         
         
         
 #    /---- getting contours ----
         contours, hir = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-#        for i, c in enumerate(contours):
-#            
-#            linecolor  = (rnd.randint(0,255), rnd.randint(0,255), rnd.randint(0,255))
-#            cv2.drawContours(cont, contours, i, linecolor, 3)
+        greenshades = [255, 128, 64, 32, 192, 148, 50] + [255]*10
+        for i, c in enumerate(contours):
+            
+            linecolor  = (0, greenshades[i], 0)#rnd.randint(8,15)*16, 0) #shades of green
+            cv2.drawContours(cont3, contours, i, linecolor, 3)
 #    \------finished with contours
         
         #print np.shape(contours)
@@ -120,17 +122,17 @@ class wrkEdgeFit(h.AbstractPlugin):
         #print lines
         #print "min:", min(lines, key=lambda _: _[0]), "max:", max(lines, key=lambda _: _[0])
         
-        pipette_x_min = min(lines, key=lambda _: _[0])[0] - 5 #substract 5 pix for safty
-        pipette_x_max = max(lines, key=lambda _: _[0])[0] + 5 #add saftey margin
+        pipette_x_min = min(lines, key=lambda _: _[0])[0] - 2 #substract 5 pix for safty
+        pipette_x_max = max(lines, key=lambda _: _[0])[0] + 2 #add saftey margin
         pic_mid = (pipette_x_min+pipette_x_max)//2
         
-        if len(lines)>4:
+        if len(lines)>5:
             print " !! Attention: pipette detection encountered error"
         #draw the lines        
-#        for i, l in enumerate(lines):
-#            #print i, l
-#            x0, y0, x1, y1 = l
-#            cv2.line(lineimg, (x0, y0), (x1, y1), (0, 0, 255), 2, 8)
+        for i, l in enumerate(lines):
+            #print i, l
+            x0, y0, x1, y1 = l
+            cv2.line(cont3, (x0, 0), (x1, 1024), (39, 127, 255), 1, 8)
 #    \--------end getting the pipette        
         
 
@@ -200,8 +202,8 @@ class wrkEdgeFit(h.AbstractPlugin):
                 
         #y_at_max_x_mean = np.int(sum(y_at_max_x)/len(y_at_max_x))
         
-        #print max_x, y_at_max_x, y_at_max_x_mean
-        #print max_indices
+        print max_x, y_at_max_x
+        print max_indices
 
 
         min_x = 100000
@@ -219,21 +221,47 @@ class wrkEdgeFit(h.AbstractPlugin):
                 
         #y_at_min_x_mean = np.int(sum(y_at_min_x)/len(y_at_min_x))
 
-        #print min_x, y_at_min_x, y_at_min_x_mean
-        #print min_indices
+        print min_x, y_at_min_x
+        print min_indices
 
         #check if this point is a corner (then its index isnt the first one)
         #otherwise it isn't reliable
-        if len(min_indices) < 1 and len(max_indices) < 1:       
+        # TODO: make this more efficient...
+        
+        if len(min_indices) < 1 and len(max_indices) < 1:
+            # didn't found an extremum on either side
             print "!! critical error in baseline finding..."
-        elif len(min_indices) == 1 and min_indices[0] == 0 and len(max_indices) == 1 and max_indices[0] == 0:
+#            raise RuntimeError #TODO: add better errorhandling...
+            baseline_pos = self.baseline
+
+            
+        elif len(min_indices) > 0 and min_indices[0] <= 5 and len(max_indices) > 0 and max_indices[0] <= 5:
+            # if extremal ponts are found, but they are from the first few points
+            # of the contour, then they are not really edges:
+            # use the previous baseline
             print "!! error: no baseline found at all, using previous"
-        elif len(min_indices) == 1 and min_indices[0] == 0 and max_indices[0] > 0:
+            baseline_pos = self.baseline
+        
+        elif len(min_indices) > 0 and min_indices[0] <= 5 and len(max_indices) > 0 and max_indices[0] > 5:
+            # left side (min) is not reliable, only use right side
+            print '! use only right side for baseline'
             baseline_pos = np.int(sum(y_at_max_x)/len(y_at_max_x))
-        elif len(max_indices) == 1 and max_indices[0] == 0 and min_indices[0] > 0:
+
+        elif len(max_indices) > 0 and max_indices[0] <= 5 and len(min_indices) > 0 and min_indices[0] > 5:
+            # right side (max) is not reliable, only use left side
+            print '! use only left side for baseline'
             baseline_pos = np.int(sum(y_at_min_x)/len(y_at_min_x))
+
         else:
             baseline_pos = np.int((sum(y_at_max_x)+sum(y_at_min_x))/(len(y_at_max_x)+len(y_at_min_x)))
+
+        print 'baseline (old):', baseline_pos, self.baseline
+        #if baseline makes a sudden jump, ignore it and use previous, else sve it
+        if abs(baseline_pos - self.baseline) > 20:
+            baseline_pos = self.baseline
+        else:
+            self.baseline = baseline_pos
+            
 
 
         cv2.line(cont3, (1, baseline_pos), (1279, baseline_pos), (0,255,255), 1)
@@ -297,7 +325,7 @@ class wrkEdgeFit(h.AbstractPlugin):
             if len(sets[i]) != 0:
                 x = sets[i][:,0,0]
                 y = [flip(y) for y in sets[i][:,0,1]]
-                z = np.polyfit(x, y, 6)
+                z = np.polyfit(x, y, 5)
                 #print z
                 poly = np.poly1d(z)
                 z2 = z.copy()
@@ -307,37 +335,39 @@ class wrkEdgeFit(h.AbstractPlugin):
                 roots = np.roots(shift)
                 
                 #print roots
+                root=np.Inf #init to not a number
 
                 if i==0: #left side
                     x_max = max(np.real(x))
                     roots = filter(lambda _x: np.isreal(_x) and _x>0 and _x<x_max, roots)
-                    root = np.int(np.real(max(roots)))
+                    if len(roots)>0: root = np.int(np.real(max(roots)))
                 else: #right side
                     x_min = min(np.real(x))
                     roots = filter(lambda _x: np.isreal(_x) and _x>x_min and _x<1280, roots)
-                    root = np.int(np.real(min(roots)))
+                    if len(roots)>0: root = np.int(np.real(min(roots)))
                 
-                deriv = poly.deriv()
-                slope = deriv(root)
-                angle[i] = abs(np.arctan(slope))*180/np.pi
-                fitline = np.poly1d([slope, poly(root)-slope*root])
-                
-                #print fitline
-                #print roots
-                #print 'root:', root, 'slope:', slope, 'angle:', angle[i]
-                
-                xp = range(1,1279)
-                yp = np.int32(np.clip(poly(xp),0,1023))
-                pnts = np.array([np.column_stack((xp, yp))])
-
-#                plt.plot(x,y,'.', xp, poly(xp),'-', xp, shift(xp),'b--', xp, fitline(xp), 'r-')
-#                plt.ylim(0,1024)
-#                plt.show()
-                
-                cv2.polylines(cont3, pnts, False, (255,255*i,0), 1)
-                
-                dx = 200
-                cv2.line(cont3, (root-dx, int(fitline(root-dx))), (root+dx, int(fitline(root+dx))), (0,0,255), 1)
+                if not root==np.Inf:
+                    deriv = poly.deriv()
+                    slope = deriv(root)
+                    angle[i] = abs(np.arctan(slope))*180/np.pi
+                    fitline = np.poly1d([slope, poly(root)-slope*root])
+                    
+                    #print fitline
+                    #print roots
+                    #print 'root:', root, 'slope:', slope, 'angle:', angle[i]
+                    
+                    xp = range(1,1279)
+                    yp = np.int32(np.clip(poly(xp),0,1023))
+                    pnts = np.array([np.column_stack((xp, yp))])
+    
+    #                plt.plot(x,y,'.', xp, poly(xp),'-', xp, shift(xp),'b--', xp, fitline(xp), 'r-')
+    #                plt.ylim(0,1024)
+    #                plt.show()
+                    
+                    cv2.polylines(cont3, pnts, False, (255,255*i,0), 1)
+                    
+                    dx = 200
+                    cv2.line(cont3, (root-dx, int(fitline(root-dx))), (root+dx, int(fitline(root+dx))), (0,0,255), 1)
         
 
 #    \--------end fit
@@ -348,7 +378,7 @@ class wrkEdgeFit(h.AbstractPlugin):
         #return [cont] #return the pic with found contours colored
         #return [lineimg] # return the pictre with the pipette markers from hough line detetction
         #return [cont2] # the connected contours, split in left and right side of pipette
-        return [cont3]
+        return [cont3, angle]
 
 
 def histogram(picture, channels=[0]):

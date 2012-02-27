@@ -46,43 +46,52 @@ out1.setup([0,2])
 
 
 
-inp.config('bin/demo.avi')
+#inp.config('0')
 inp1.config('bin/demo.avi', 3)
 
 #wrk0.config()
 #wrk1.config()
 wrk2.config()
 
-out0.config()
+#out0.config()
 out1.config()
 
+for i in range(10):
+    inp1()
 
 
+for i in range(1000):
+    data = []
+    
+    #inp()
+    t1=time.clock()
+    data.extend(inp1())
+    t2=time.clock()
+    print "inp: time taken:", (t2-t1)
+    
+    
+    
+    
+    
+    #data.extend(wrk0(data))
+    #data.extend(wrk1(data))
 
+    t1=time.clock()
+    data.extend(wrk2(data))
+    t2=time.clock()
+    print "wrk: time taken:", (t2-t1)
+    print 'angle', data[3]
 
-data = []
+#    n=50
+#    t1=time.clock()
+#    for i in range(n):
+#        wrk2(data)
+#    t2=time.clock()
+#    print "time taken:", (t2-t1) / n
+    #print data
+    
+    
+    #out0(data)
+    out1(data)
 
-#inp()
-data.extend(inp1())
-
-
-
-
-
-
-#data.extend(wrk0(data))
-#data.extend(wrk1(data))
-data.extend(wrk2(data))
-n=50
-t1=time.clock()
-for i in range(n):
-    wrk2(data)
-t2=time.clock()
-print "time taken:", (t2-t1) / n
-#print data
-
-
-#out0(data)
-out1(data)
-
-cv2.waitKey()
+    cv2.waitKey()
