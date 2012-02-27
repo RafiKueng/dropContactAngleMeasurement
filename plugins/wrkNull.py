@@ -13,10 +13,14 @@ import helper as h
 #import cv2
 import time
 
+__type__ = h.plugintype.Worker
 
 class wrkNull(h.AbstractPlugin):
 
     def __init__(self):
+        
+        print 'type:', self.__type__
+        self.__type__ = h.plugintype.Worker
         
         inp0 = h.createDataDescriptor(
             name="Framecounter",
