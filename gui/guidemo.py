@@ -43,6 +43,15 @@ from PyQt4 import QtCore,QtGui
 
 # Import the compiled UI module
 from dropgui import Ui_MainWindow
+from pluginWidget import Ui_Form as ui_plugin
+
+
+class pluginWidget(QtGui.QWidget):
+    def __init__(self):
+        QtGui.QWidget.__init__(self)
+        self.ui=ui_plugin()
+        self.ui.setupUi(self)
+        
 
 # Create a class for our main window
 class Main(QtGui.QMainWindow):
@@ -53,22 +62,28 @@ class Main(QtGui.QMainWindow):
         self.ui=Ui_MainWindow()
         self.ui.setupUi(self)
         
-        for i in range(3):
-            item=QtGui.QTreeWidgetItem(["test",str(i)])
-            item.setCheckState(0, QtCore.Qt.Checked)
-            self.ui.treeInput.addTopLevelItem(item)
+        
+        for i in range(10):
+            pgin = pluginWidget()
+            pgin.ui.txtName.setText('bla'+str(i))
+            pgin.ui.txtDesc = ' blablablabla'
+            self.ui.vlayoutInput.insertWidget(i,pgin)
+#            btn = QtGui.QPushButton("Config")
+#            QtGui.QTreeWidget.setItemWidget()
+#            item=QtGui.QTreeWidgetItem(["test",str(i), btn])
+#            #item.setCheckState(0, QtCore.Qt.Checked)
+#            self.ui.treeInput.addTopLevelItem(item)
+            
             
     def on_treeInput_itemChanged(self, item, column):
         print 'item changed', item, column
         
 
 def main():
-    # Again, this is boilerplate, it's going to be the same on
-    # almost every app you write
+
     app = QtGui.QApplication(sys.argv)
     window=Main()
     window.show()
-    # It's exec_ because exec is a reserved word in Python
     sys.exit(app.exec_())
 
 
