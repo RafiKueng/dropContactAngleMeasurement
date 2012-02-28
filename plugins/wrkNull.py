@@ -13,9 +13,11 @@ import helper as h
 #import cv2
 import time
 
-__type__ = h.plugintype.Worker
+
 
 class wrkNull(h.AbstractPlugin):
+
+    __type__ = h.plugintype.Worker
 
     def __init__(self):
         

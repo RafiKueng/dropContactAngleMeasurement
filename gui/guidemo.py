@@ -65,6 +65,7 @@ class Main(QtGui.QMainWindow):
         
         for i in range(10):
             pgin = pluginWidget()
+            pgin.
             pgin.ui.txtName.setText('bla'+str(i))
             pgin.ui.txtDesc = ' blablablabla'
             self.ui.vlayoutInput.insertWidget(i,pgin)
