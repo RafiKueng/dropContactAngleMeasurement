@@ -47,10 +47,38 @@ from pluginWidget import Ui_Form as ui_plugin
 
 
 class pluginWidget(QtGui.QWidget):
-    def __init__(self):
+    
+    onClickConfigSignal = QtCore.pyqtSignal(int)  
+    onClickRemoveSignal = QtCore.pyqtSignal(int)  
+    
+    def __init__(self, parent, pluginType, number):
         QtGui.QWidget.__init__(self)
+
+        self.pluginType = pluginType
+        self.number = number
+        
         self.ui=ui_plugin()
         self.ui.setupUi(self)
+
+    
+        
+        QtCore.QObject.connect(self.ui.btnEdit, QtCore.SIGNAL('clicked()'), self.onClickConfig)
+        QtCore.QObject.connect(self.ui.btnEdit, QtCore.SIGNAL('clicked()'), self.onClickConfig)
+        
+        #QtCore.QObject.connect(self.ui.btnEdit, QtCore.SIGNAL('clicked()'), )
+        
+        #self.clicked_config.connect(parent.onClickConfigPlugin)
+
+        #self.ui.btnEdit.clicked.connect(self.clkConf)
+        #self.ui.btnEdit.clicked.connect(parent.onClickConfigPlugin)
+        
+    def onClickConfig(self):
+        print 'clicked on config in wiget nr.', self.number
+        self.onClickConfigSignal.emit(self.number)
+        
+    def onClickRemove(self):
+        print 'clicked on remove in wiget nr.', self.number
+        self.onClickRemoveSignal.emit(self.number)
         
 
 # Create a class for our main window
@@ -62,22 +90,28 @@ class Main(QtGui.QMainWindow):
         self.ui=Ui_MainWindow()
         self.ui.setupUi(self)
         
+        inpPlugins = []*10
         
         for i in range(10):
-            pgin = pluginWidget()
-            pgin.
-            pgin.ui.txtName.setText('bla'+str(i))
-            pgin.ui.txtDesc = ' blablablabla'
-            self.ui.vlayoutInput.insertWidget(i,pgin)
-#            btn = QtGui.QPushButton("Config")
-#            QtGui.QTreeWidget.setItemWidget()
-#            item=QtGui.QTreeWidgetItem(["test",str(i), btn])
-#            #item.setCheckState(0, QtCore.Qt.Checked)
-#            self.ui.treeInput.addTopLevelItem(item)
+            inpPlugins[i] = pluginWidget(self, 'inp', i)
             
+            inpPlugins[i].clickedConfigSignal.connect(self.onClickConfigPlugin)
+            inpPlugins[i].clickedConfigSignal.connect(self.onClickRemovePlugin)
+
+
+            inpPlugins[i].ui.txtName.setText('bla'+str(i))
+            inpPlugins[i].ui.txtDesc.setText(' blablablabla')
+            self.ui.vlayoutInput.insertWidget(i,inpPlugins[i])
             
-    def on_treeInput_itemChanged(self, item, column):
-        print 'item changed', item, column
+
+            
+    @QtCore.pyqtSlot(int)
+    def onClickConfigPlugin(self, nr):
+        print "configure plugin nr", nr
+
+    @QtCore.pyqtSlot(int)
+    def onClickRemovePlugin(self, nr):
+        print "remove plugin nr", nr
         
 
 def main():

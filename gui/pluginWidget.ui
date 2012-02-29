@@ -37,9 +37,6 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <property name="styleSheet">
-   <string notr="true">background-color: rgb(255, 255, 127);</string>
-  </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
     <widget class="QLabel" name="txtName">
@@ -79,9 +76,9 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="btnDelete">
+      <widget class="QPushButton" name="btnRemove">
        <property name="text">
-        <string>Delete</string>
+        <string>Remove</string>
        </property>
       </widget>
      </item>
