@@ -7,10 +7,10 @@ Created on Fri Feb 10 17:52:14 2012
 
 #def of types for plugins
 class plugintype:
-    #None = 0 = None
-    Reader = 1
-    Worker = 2
-    Writer = 3
+    #None = -1 = None
+    Reader = 0
+    Worker = 1
+    Writer = 2
 
 # def of datatypes that can be used in the datastream
 

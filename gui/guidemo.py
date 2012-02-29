@@ -49,7 +49,7 @@ from pluginWidget import Ui_Form as ui_plugin
 class pluginWidget(QtGui.QWidget):
     
     onClickConfigSignal = QtCore.pyqtSignal(int)  
-    onClickRemoveSignal = QtCore.pyqtSignal(int)  
+    onClickRemoveSignal = QtCore.pyqtSignal(QtGui.QWidget)  
     
     def __init__(self, parent, pluginType, number):
         QtGui.QWidget.__init__(self)
@@ -63,14 +63,7 @@ class pluginWidget(QtGui.QWidget):
     
         
         QtCore.QObject.connect(self.ui.btnEdit, QtCore.SIGNAL('clicked()'), self.onClickConfig)
-        QtCore.QObject.connect(self.ui.btnEdit, QtCore.SIGNAL('clicked()'), self.onClickConfig)
-        
-        #QtCore.QObject.connect(self.ui.btnEdit, QtCore.SIGNAL('clicked()'), )
-        
-        #self.clicked_config.connect(parent.onClickConfigPlugin)
-
-        #self.ui.btnEdit.clicked.connect(self.clkConf)
-        #self.ui.btnEdit.clicked.connect(parent.onClickConfigPlugin)
+        QtCore.QObject.connect(self.ui.btnRemove, QtCore.SIGNAL('clicked()'), self.onClickRemove)
         
     def onClickConfig(self):
         print 'clicked on config in wiget nr.', self.number
@@ -78,7 +71,7 @@ class pluginWidget(QtGui.QWidget):
         
     def onClickRemove(self):
         print 'clicked on remove in wiget nr.', self.number
-        self.onClickRemoveSignal.emit(self.number)
+        self.onClickRemoveSignal.emit(self)
         
 
 # Create a class for our main window
@@ -90,28 +83,48 @@ class Main(QtGui.QMainWindow):
         self.ui=Ui_MainWindow()
         self.ui.setupUi(self)
         
-        inpPlugins = []*10
+        self.pluginContainers = [self.ui.vlayoutInp, self.ui.vlayoutProc, self.ui.vlayoutOutp]
         
+        self.plugins = [[],[],[]]
+        
+        self.run()
+        
+
+
+
+    def run(self):
         for i in range(10):
-            inpPlugins[i] = pluginWidget(self, 'inp', i)
             
-            inpPlugins[i].clickedConfigSignal.connect(self.onClickConfigPlugin)
-            inpPlugins[i].clickedConfigSignal.connect(self.onClickRemovePlugin)
+            plugin = pluginWidget(self, i%3, i)
+            
+            plugin.onClickConfigSignal.connect(self.onClickConfigPlugin)
+            plugin.onClickRemoveSignal.connect(self.onClickRemovePlugin)
 
 
-            inpPlugins[i].ui.txtName.setText('bla'+str(i))
-            inpPlugins[i].ui.txtDesc.setText(' blablablabla')
-            self.ui.vlayoutInput.insertWidget(i,inpPlugins[i])
+            plugin.ui.txtName.setText('bla'+str(i))
+            plugin.ui.txtDesc.setText(' blablablabla')
             
+            self.pluginContainers[plugin.pluginType].insertWidget(0,plugin)
+
+            self.plugins[plugin.pluginType].append(plugin)
+
+
 
             
     @QtCore.pyqtSlot(int)
     def onClickConfigPlugin(self, nr):
         print "configure plugin nr", nr
 
-    @QtCore.pyqtSlot(int)
-    def onClickRemovePlugin(self, nr):
-        print "remove plugin nr", nr
+    @QtCore.pyqtSlot(QtGui.QWidget)
+    def onClickRemovePlugin(self, plugin):
+        print "remove plugin nr", plugin.number, "type:", plugin.pluginType
+        self.pluginContainers[plugin.pluginType].removeWidget(plugin)
+        self.plugins[plugin.pluginType].remove(plugin)
+        plugin.deleteLater()
+
+
+
+
         
 
 def main():
