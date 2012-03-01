@@ -44,6 +44,21 @@ from PyQt4 import QtCore,QtGui
 # Import the compiled UI module
 from dropgui import Ui_MainWindow
 from pluginWidget import Ui_Form as ui_plugin
+from pluginSelectionDialog import Ui_Dialog as ui_pluginseldiag
+
+
+class pluginSelectionDialog(QtGui.QDialog):
+    
+    def __init__(self):
+        QtGui.QDialog.__init__(self)
+        
+        self.ui = ui_pluginseldiag()
+        self.ui.setupUi(self)
+        
+    def getSelected(self):
+        print "set result"
+        return [1,2,3,4,5]
+    
 
 
 class pluginWidget(QtGui.QWidget):
@@ -93,6 +108,12 @@ class Main(QtGui.QMainWindow):
 
 
     def run(self):
+        
+        diag = pluginSelectionDialog()
+        if diag.exec_():
+            print 'diag:',diag.getSelected()
+            
+            
         for i in range(10):
             
             plugin = pluginWidget(self, i%3, i)
