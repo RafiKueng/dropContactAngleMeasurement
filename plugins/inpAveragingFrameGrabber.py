@@ -63,6 +63,9 @@ class inpAveragingFrameGrabber(h.AbstractPlugin):
                             self.video.read()[1], #read image
                         cv2.COLOR_BGR2GRAY)))
             self.counter += 1
+            
+        #get the length of the video
+        self.nFrames = self.video.get(cv2.cv.CV_CAP_PROP_FRAME_COUNT)
         
 
     def __call__(self):
