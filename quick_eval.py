@@ -20,8 +20,8 @@ import plugins.outSimpleDisplay as outSD
 import plugins.outSimpleCSVWriter as outCSV
 import plugins.outSaveFrame as outFrame
 
-inp = inpSFG.inpSimpleFrameGrabber()
-inp1 = inpAFG.inpAveragingFrameGrabber()
+#inp = inpSFG.inpSimpleFrameGrabber()
+inp1 = inpAFG.inpAveragingPlayPauseFrameGrabber()
 
 #wrk0 = wrkNull.wrkNull()
 #wrk1 = wrkInv.wrkInvert()
@@ -35,7 +35,7 @@ out4 = outFrame.outSaveFrame()
 
 
 
-inp.setup()
+#inp.setup()
 inp1.setup()
 
 #wrk0.setup([0,1])
@@ -73,7 +73,7 @@ for i in range(10):
     inp1()
 
 
-for i in range(1000):
+for i in range(int(inp1.nFrames)):
     data = []
     
     #inp()
@@ -89,3 +89,9 @@ for i in range(1000):
 
     #cv2.waitKey()
     #exit()
+    
+inp1.finish()
+wrk2.finish()
+out1.finish()
+out3.finish()
+out4.finish()

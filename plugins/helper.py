@@ -58,8 +58,26 @@ class AbstractPlugin(object):
     """
     
 
+    # methods to override by child classes
+
     def __init__(self):
         raise NotImplementedError
+    
+    def config(self):
+        raise NotImplementedError
+    
+    def __call__(self, data):
+        raise NotImplementedError
+        
+    def finish(self):
+        """will be called on at the end of the programm
+        use for cleaning up, saving files ect..."""
+        raise NotImplementedError
+        
+        
+    
+    
+    # provided functions, no need to override, since default behaviour is mosly what you want
     
     def setup(self, inp_ch=None):
         """tells the plugin in which field of the datastream the expected 
@@ -71,12 +89,7 @@ class AbstractPlugin(object):
             self.inp_ch = inp_ch
         else:
             raise NotImplementedError, "some strage error occured"
-        
-    def config(self):
-        raise NotImplementedError
-    
-    def __call__(self, data):
-        raise NotImplementedError
+
 
     def getOutputInfo(self): #maybe get rid of these, since direct dataaccess is possible
         return self.outputinfo

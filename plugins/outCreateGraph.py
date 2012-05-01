@@ -12,8 +12,6 @@ import helper as h
 
 import time
 
-import csv
-
 
 
 #cap = cv.CreateFileCapture("../bin/tree.avi")
@@ -31,7 +29,7 @@ import csv
 #print cv.GetCaptureProperty(file, cv.CV_CAP_PROP_FRAME_WIDTH)
 
 
-class outSimpleCSVWriter(h.AbstractPlugin):
+class outCreateGraph(h.AbstractPlugin):
     
 
     def __init__(self):
@@ -51,29 +49,23 @@ class outSimpleCSVWriter(h.AbstractPlugin):
         self.outputinfo = None
 
     
-    def config(self, filename, ext = "csv"):
-        print 'config csv writer: ' + filename + "."+ext
-        #self.f = open(filename, "wb")
-        #self.f.write("testingggggg")
-        #self.writer = csv.writer(self.f)
-        #self.writer.writerow(["testing", "test2"])
-        #self.fff = open(filename, "wb")
-        self.file = open(filename + "."+ext, "wb")
-        self.csvwrt = csv.writer(self.file, dialect='excel')
-        self.csvwrt.writerow(["FrameNr","Angle1","Angle2"])
+    def config(self, filename="outp", ext="jpg"):
+        self.filename = filename
+        self.ext = ext
+        
+
     
     def __call__(self, data):
-        print ' - outSimpleCSVWriter: write data nr %.0f @t: %f' % (data[self.inp_ch[0]], time.time())
-        #print [data[self.inp_ch[0]]] + data[self.inp_ch[1]]
-        self.csvwrt.writerow([data[self.inp_ch[0]]] + data[self.inp_ch[1]])
-        self.file.flush()
+        print ' - outSaveFrame: display frame nr %.0f @t: %f' % (data[self.inp_ch[0]], time.time())
         
+        fullfilename = "{:s}{:05.0f}.{:s}".format(self.filename, data[self.inp_ch[0]], self.ext)
+
+        cv2.imwrite(fullfilename, data[self.inp_ch[1]])
+
     def finish(self):
-        self.file.flush()
-        self.file.close()
-
-
-
+        pass        
+        
+        
 if __name__ == '__main__':
     #getData()
     pass
