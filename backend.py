@@ -9,32 +9,34 @@ Created on Mon Feb 27 19:14:20 2012
 @author: rafik
 """
 
-class PipelineSetup(object):
-    """Handles the Setup of the Pipeline"""
-    
-    def __init__():
+class Backend(object):
+
+    isDoneSetup = False
+    isDoneConfig = False
+
+    def __init__(self):
         pass
     
     def getAvailablePlugins(self, pType):
         pass
     
-    def setPlugin(self):
+    def setPlugins(self):
+        self.isDoneSetup = True
         pass
         
     def saveSetup(self):
         pass        
         
     def loadSetup(self, filename):
+        self.isDoneSetup = True
         pass
     
 
-class PipelineConfig(object):
-    """Sets up the pipeline and handles the configuration of each plugin"""
-    
-    def __init__(self, setup):
+    def initConfig(self):
         pass
     
-    def config(self, id):
+    def config(self, id, para=[]):
+        # wenn para leer, return liste mit parameter und descr.
         pass
     
     def IsConfigDone(self):
@@ -47,10 +49,9 @@ class PipelineConfig(object):
         pass
         
 
-class Pipeline(object):
     """ finally sets up the pipeline with all configs, ready to work"""
     
-    def __init__(self, config):
+    def initWorking(self, config):
         pass
     
     def start():

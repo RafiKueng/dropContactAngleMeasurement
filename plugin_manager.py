@@ -56,6 +56,18 @@ def get_plugin_tree():
     
     return tree
     #return flatlist
+    
+'''
+datastructre of tree:
+    list with [module_name, module_docsting, list_of_classes]
+    
+    with list_of_classes as a list of available plugins (surprise..):
+    [plugin_name, pointer_to_plugin, plugin_type, plugin_docstring]
+
+datastructre of flatlist:
+    [module_name, module_docstring, plugin_name, pointer_to_plugin, plugin_type, plugin_docstring]
+    contains an entry for each plugin in a module
+''' 
 
 
 
@@ -64,7 +76,7 @@ def main():
     tree = get_plugin_tree()
     
     for i,k, j in tree:
-        print '\n*',i
+        print '\n*',i, k
         for jj in j:
             print '  -', jj
             
