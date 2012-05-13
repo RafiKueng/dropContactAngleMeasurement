@@ -16,6 +16,13 @@ import random as rnd
 #import time
 
 
+def median(y):
+    z = len(y)
+    if not z%2:
+        return (y[(z/2)-1] + y[z/2]) / 2.
+    return y[z/2]
+
+
 class wrkEdgeFit(h.AbstractPlugin):
 
     def __init__(self):
@@ -36,12 +43,145 @@ class wrkEdgeFit(h.AbstractPlugin):
             datatype=h.Float)        
             
         self.outputinfo = [out0]
+        
+        self.nTrained = 0;
     
     def config(self):
+        
+        
+        self.contrast_adj = 1.1 #simple factor for getting more contrast in picture
+
+        self.canny_low_threshold = 50
+        self.canny_hi_threshold = 50*7
+        
+        self.hough_threshold=30
+        self.hough_minLineLength=50
+        self.hough_maxLineGap=20
+
+
+
         self.baseline = 377
-        pass
+
+
+    def train(self, imgs):
+        
+        print "training with", len(imgs), "images"
+        
+        pipette_x_min=[]
+        pipette_x_max=[]
+        baseline_pos=[]
+        
+        
+        for img in imgs:
+            gray = np.uint8(np.clip(np.uint32(img) * 1.1, 0, 255))
+            edges = np.zeros(np.shape(gray), dtype=np.uint8)
+            edges = cv2.Canny(gray,self.canny_low_threshold,self.canny_hi_threshold, edges, 3, L2gradient=True)
+            contours, hir = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+            
+            lines = cv2.HoughLinesP(edges,
+                                    50,
+                                    np.pi,
+                                    threshold=self.hough_threshold,
+                                    minLineLength=self.hough_minLineLength,                                
+                                    maxLineGap=self.hough_maxLineGap
+                                    )[0]
+            #print lines
+            #print "min:", min(lines, key=lambda _: _[0]), "max:", max(lines, key=lambda _: _[0])
+            
+            pipette_x_min.append(min(lines, key=lambda _: _[0])[0])
+            pipette_x_max.append(max(lines, key=lambda _: _[0])[0])
+        
+        
+            set_l = []
+            set_r = [] 
+            for contour in contours:
+                for points in contour:
+                    for point in points:
+                        #print np.shape(point), len(point), type(point)
+                        if point[0]<pipette_x_min:
+                            set_l.append(np.array([point]))
+                        elif point[0]>pipette_x_max:
+                            set_r.append(np.array([point]))
+            
+            set_l.sort(key=lambda _: _[0][1])
+            set_r.sort(key=lambda _: _[0][1])
+            sets = np.array([np.array(set_l), np.array(set_r)])
+#    \--------end distribute points 
+
+#    /------- get the mirror plane by taking the furthest pixels
+            max_x = 0
+            max_indices = []
+            y_at_max_x = []
+            for i, val in enumerate(set_r):
+                if val[0][0] < max_x: continue
+                if val[0][0] == max_x:
+                    max_indices.append(i)
+                    y_at_max_x.append(val[0][1])
+                else:
+                    max_x = val[0][0]
+                    max_indices = [i] 
+                    y_at_max_x = [val[0][1]]
+                    
+            
+            min_x = 100000
+            min_indices = []
+            y_at_min_x = []
+            for i, val in enumerate(set_l):
+                if val[0][0] > min_x: continue
+                if val[0][0] == min_x:
+                    min_indices.append(i)
+                    y_at_min_x.append(val[0][1])
+                else:
+                    min_x = val[0][0]
+                    min_indices = [i] 
+                    y_at_min_x = [val[0][1]]
+
+            #check if this point is a corner (then its index isnt the first one)
+            #otherwise it isn't reliable
+            # TODO: make this more efficient...
+            
+            if len(min_indices) < 1 and len(max_indices) < 1:
+                # didn't found an extremum on either side
+                pass
     
-    def __call__(self, data):
+                
+            elif len(min_indices) > 0 and min_indices[0] <= 5 and len(max_indices) > 0 and max_indices[0] <= 5:
+                # if extremal ponts are found, but they are from the first few points
+                # of the contour, then they are not really edges:
+                # use the previous baseline
+                pass
+            
+            elif len(min_indices) > 0 and min_indices[0] <= 5 and len(max_indices) > 0 and max_indices[0] > 5:
+                # left side (min) is not reliable, only use right side
+                print '! use only right side for baseline'
+                baseline_pos.append(np.int(sum(y_at_max_x)/len(y_at_max_x)))
+    
+            elif len(max_indices) > 0 and max_indices[0] <= 5 and len(min_indices) > 0 and min_indices[0] > 5:
+                # right side (max) is not reliable, only use left side
+                print '! use only left side for baseline'
+                baseline_pos.append(np.int(sum(y_at_min_x)/len(y_at_min_x)))
+    
+            else:
+                baseline_pos.append(np.int((sum(y_at_max_x)+sum(y_at_min_x))/(len(y_at_max_x)+len(y_at_min_x))))
+    
+            
+            
+            
+        self.pipette_x_min=median(pipette_x_min)
+        self.pipette_x_max=median(pipette_x_max)
+        self.baseline_pos=median(baseline_pos)
+            
+        print "training finished:"
+        print " pipette_x_min:", self.pipette_x_min, "of", len(pipette_x_min)
+        print " pipette_x_max:", self.pipette_x_max, "of", len(pipette_x_max)
+        print " baseline_pos:", self.baseline_pos, "of", len(baseline_pos)
+
+
+    
+    
+
+    
+    def __call__(self, data, paintPic=True):
 
         #gray = cv2.cvtColor(data[self.inp_ch[0]], cv2.COLOR_BGR2GRAY) # convert to grayscale
         gray = data[self.inp_ch[0]]
@@ -52,7 +192,7 @@ class wrkEdgeFit(h.AbstractPlugin):
         #edges = cv2.cvtColor(data[self.inp_ch[0]], cv2.COLOR_BGR2GRAY)
         #cont = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
 #        cont2 = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
-        cont3 = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
+        #cont3 = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
 #        lineimg = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
 
 #    /---- get more contrast ----
@@ -65,23 +205,17 @@ class wrkEdgeFit(h.AbstractPlugin):
 
 
 #    /---- canny edge filtering ----
-        low_threshold = 50
-        edges = cv2.Canny(gray,low_threshold,low_threshold*7, edges, 3, L2gradient=True) # low_threshold*3 for high_treshold is recommended by canny
+        edges = cv2.Canny(gray,self.canny_low_threshold,self.canny_hi_threshold, edges, 3, L2gradient=True) # low_threshold*3 for high_treshold is recommended by canny
 
-        mix1 = cv2.add(gray, edges) #construct red channel
-        mix2 = cv2.subtract(gray, edges) # constuct blue, green channel
-        cont3 = cv2.merge([mix2, mix2, mix1])
+        #mix1 = cv2.add(gray, edges) #construct red channel
+        #mix2 = cv2.subtract(gray, edges) # constuct blue, green channel
+        #cont3 = cv2.merge([mix2, mix2, mix1])
 #    \------finished canny
         
         
         
 #    /---- getting contours ----
         contours, hir = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-        greenshades = [255, 128, 64, 32, 192, 148, 50] + [255]*10
-        for i, c in enumerate(contours):
-            
-            linecolor  = (0, greenshades[i], 0)#rnd.randint(8,15)*16, 0) #shades of green
-            cv2.drawContours(cont3, contours, i, linecolor, 3)
 #    \------finished with contours
         
         #print np.shape(contours)
@@ -117,22 +251,25 @@ class wrkEdgeFit(h.AbstractPlugin):
 """
 # TODO: compare speed between the regular and the probabilistic hough transform
 
+
+
 #    /--------get the pipette using probabalistic hough transform
-        lines = cv2.HoughLinesP(edges, 50, np.pi, threshold=30, minLineLength=30, maxLineGap=20)[0]
+        lines = cv2.HoughLinesP(edges,
+                                50,
+                                np.pi,
+                                threshold=self.hough_threshold,
+                                minLineLength=self.hough_minLineLength,                                
+                                maxLineGap=self.hough_maxLineGap
+                                )[0]
         #print lines
         #print "min:", min(lines, key=lambda _: _[0]), "max:", max(lines, key=lambda _: _[0])
         
         pipette_x_min = min(lines, key=lambda _: _[0])[0] - 2 #substract 5 pix for safty
         pipette_x_max = max(lines, key=lambda _: _[0])[0] + 2 #add saftey margin
-        pic_mid = (pipette_x_min+pipette_x_max)//2
+        
         
         if len(lines)>5:
             print " !! Attention: pipette detection encountered error"
-        #draw the lines        
-        for i, l in enumerate(lines):
-            #print i, l
-            x0, y0, x1, y1 = l
-            cv2.line(cont3, (x0, 0), (x1, 1024), (39, 127, 255), 1, 8)
 #    \--------end getting the pipette        
         
 
@@ -261,12 +398,6 @@ class wrkEdgeFit(h.AbstractPlugin):
             baseline_pos = self.baseline
         else:
             self.baseline = baseline_pos
-            
-
-
-        cv2.line(cont3, (1, baseline_pos), (1279, baseline_pos), (0,255,255), 1)
-
-
 #    \--------end mirror plane 
 
 
@@ -321,13 +452,18 @@ class wrkEdgeFit(h.AbstractPlugin):
                 return x
 
         angle = [0.0,0.0]
+        _root = [0,0]
+        _poly = [0,0]
+        
         for i in [0,1]:
             if len(sets[i]) != 0:
                 x = sets[i][:,0,0]
                 y = [flip(y) for y in sets[i][:,0,1]]
-                z = np.polyfit(x, y, 5)
+                z, residuals, rank, singular_values, rcond = np.polyfit(x, y, 5, full=True)
+                print "res:", residuals/len(x)
                 #print z
                 poly = np.poly1d(z)
+                _poly[i]=poly
                 z2 = z.copy()
                 z2[-1] -= baseline_pos          
                 #print z2
@@ -350,24 +486,8 @@ class wrkEdgeFit(h.AbstractPlugin):
                     deriv = poly.deriv()
                     slope = deriv(root)
                     angle[i] = abs(np.arctan(slope))*180/np.pi
-                    fitline = np.poly1d([slope, poly(root)-slope*root])
+                    _root[i] = root                    
                     
-                    #print fitline
-                    #print roots
-                    #print 'root:', root, 'slope:', slope, 'angle:', angle[i]
-                    
-                    xp = range(1,1279)
-                    yp = np.int32(np.clip(poly(xp),0,1023))
-                    pnts = np.array([np.column_stack((xp, yp))])
-    
-    #                plt.plot(x,y,'.', xp, poly(xp),'-', xp, shift(xp),'b--', xp, fitline(xp), 'r-')
-    #                plt.ylim(0,1024)
-    #                plt.show()
-                    
-                    cv2.polylines(cont3, pnts, False, (255,255*i,0), 1)
-                    
-                    dx = 200
-                    cv2.line(cont3, (root-dx, int(fitline(root-dx))), (root+dx, int(fitline(root+dx))), (0,0,255), 1)
         
 
 #    \--------end fit
@@ -378,7 +498,62 @@ class wrkEdgeFit(h.AbstractPlugin):
         #return [cont] #return the pic with found contours colored
         #return [lineimg] # return the pictre with the pipette markers from hough line detetction
         #return [cont2] # the connected contours, split in left and right side of pipette
-        return [cont3, angle]
+        
+        
+        
+        
+        
+        if paintPic == True:
+            #create pic
+            cont3 = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
+            
+            #canny edge filter
+            mix1 = cv2.add(gray, edges) #construct red channel
+            mix2 = cv2.subtract(gray, edges) # constuct blue, green channel
+            cont3 = cv2.merge([mix2, mix2, mix1])
+            
+            #adding contours to pic
+            greenshades = [255, 128, 64, 32, 192, 148, 50] + [255]*10
+            for i, c in enumerate(contours):
+                linecolor  = (0, greenshades[i], 0)#rnd.randint(8,15)*16, 0) #shades of green
+                cv2.drawContours(cont3, contours, i, linecolor, 3)
+            
+            #draw the hough lines (pipette detection)
+            for i, l in enumerate(lines):
+                #print i, l
+                x0, y0, x1, y1 = l
+                cv2.line(cont3, (x0, 0), (x1, 1024), (39, 127, 255), 1, 8)
+                
+            #draw the baseline
+            cv2.line(cont3, (1, baseline_pos), (1279, baseline_pos), (0,255,255), 1)
+
+            #draw the fitted poly and the angle
+            for i in [0,1]:
+                deriv = _poly[i].deriv()
+                slope = deriv(_root[i])
+                fitline = np.poly1d([slope, _poly[i](root)-slope*_root[i]])
+                
+                xp = range(1,1279)
+                yp = np.int32(np.clip(_poly[i](xp),0,1023))
+                pnts = np.array([np.column_stack((xp, yp))])
+                
+                cv2.polylines(cont3, pnts, False, (255,255*i,0), 1)
+                
+                dx = 200
+                cv2.line(cont3,
+                         (_root[i]-dx, int(fitline(_root[i]-dx))),
+                         (_root[i]+dx, int(fitline(_root[i]+dx))),
+                         (0,0,255), 1)
+               
+            self.lastpic = cont3
+            
+        
+        
+        
+        return [angle]
+        
+        
+
 
 
 def histogram(picture, channels=[0]):

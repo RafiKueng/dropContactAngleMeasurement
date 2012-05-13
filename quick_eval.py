@@ -27,12 +27,12 @@ inp1 = inpAFG.inpAveragingPlayPauseFrameGrabber()
 #wrk1 = wrkInv.wrkInvert()
 wrk2 = wrkEdge.wrkEdgeFit()
 
-out0 = outSD.outSimpleDisplay() #display orginal
-out1 = outSD.outSimpleDisplay() # display brighened orignal with edges overlay in red
+#out0 = outSD.outSimpleDisplay() #display orginal
+#out1 = outSD.outSimpleDisplay() # display brighened orignal with edges overlay in red
 #out2 = outHG.outHistogram()
 out3 = outCSV.outSimpleCSVWriter()
 out4 = outFrame.outSaveFrame()
-
+outDisp = outSD.outSimpleDisplay() #display a frame on demand... (abuse the plugin)
 
 
 #inp.setup()
@@ -42,23 +42,23 @@ inp1.setup()
 #wrk1.setup([1])
 wrk2.setup([1])
 
-out0.setup([0,1]) #display orginal image
-out1.setup([0,2]) #display the edidet file
+#out0.setup([0,1]) #display orginal image
+#out1.setup([0,2]) #display the edidet file
 
-out3.setup([0,3])
+out3.setup([0,2])
 out4.setup([0,2])
-
+outDisp.setup([0,1]) #remember: this plaugin is abused and not called with the datastream
 
 
 #inp.config('0')
-inp1.config('bin/demo.avi', 3)
+inp1.config('bin/Rh111BN_11_1_100mV.avi', 1)
 
 #wrk0.config()
 #wrk1.config()
 wrk2.config()
 
 #out0.config()
-out1.config()
+#out1.config()
 
 folder = "outp"
 filename = "testing"
@@ -70,7 +70,8 @@ out4.config(path)
 print "there are that many frames: ", inp1.nFrames
 
 for i in range(10):
-    inp1()
+    #inp1()
+    pass
 
 
 for i in range(int(inp1.nFrames)):
@@ -78,14 +79,20 @@ for i in range(int(inp1.nFrames)):
     
     #inp()
     data.extend(inp1())
-    data.extend(wrk2(data))
 
-    print 'angle', data[3]
 
+
+    if i%1==0:
+        data.extend(wrk2(data, True))
+        outDisp([1,wrk2.lastpic])
+    else:
+        data.extend(wrk2(data, False))
+
+    print 'angle', data[2]        
     #out0(data)
-    out1(data)
+    #out1(data)
     out3(data)
-    out4(data)
+    #out4(data)
 
     #cv2.waitKey()
     #exit()

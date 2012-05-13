@@ -13,6 +13,7 @@ import cv2
 class base():
     def __init__(self):
         print "baseinit"
+        
 
 class test():
     def __init__(self, filename):
@@ -24,6 +25,24 @@ class test():
         self.c = csv.writer(self.f)
         self.c.writerow(["Name","Address","Telephone","Fax","E-mail","Others"])
         
+
+class Foo():
+    class Bar():
+        val1=0
+        val2=0
         
-t = test("testclass.csv")
-t()
+    def __init__(self):
+        bar = Foo.Bar()
+        print bar.val1
+        bar.val1 = 3
+        print bar.val1
+        
+        bar2 = Foo.Bar()
+        print bar2.val1
+        print bar.val1        
+        
+
+
+#t = test("testclass.csv")
+#t()
+f = Foo()

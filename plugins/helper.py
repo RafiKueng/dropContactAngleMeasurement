@@ -5,6 +5,8 @@ Created on Fri Feb 10 17:52:14 2012
 @author: rafik
 """
 
+import numpy as np
+
 #def of types for plugins
 class plugintype:
     #None = -1 = None
@@ -107,5 +109,25 @@ class AbstractPlugin(object):
             return True
         else:
             raise NotImplementedError, "The Plugin is not programmed the right way"
-        
     
+    
+class AngleMeasurement:
+    angleLeft = np.NaN
+    angleRight = np.NaN
+
+    angleLefrR2 = 0
+    angleRightR2 = 0
+
+    rootOk = False
+    rootDelta = 0
+    
+    baselineOk = False
+    baseline = [[0,0],[0,0]]
+
+    pipetteOK = False
+    
+    fitOK = False
+    
+    def isOK(self):
+        return (self.rootOk and self.baselineOk
+                and self.pipetteOK and self.fitOK)
