@@ -43,19 +43,31 @@ class inpSimpleFrameGrabber(h.AbstractPlugin):
     def config(self, filename):
         print ' - inpSimpleFrameGrabber: config @t: %f' % (time.time())
         self.video = cv2.VideoCapture(filename)
-        pass
+        
+        self.nFrames = self.video.get(cv2.cv.CV_CAP_PROP_FRAME_COUNT)
         
 
-    def __call__(self):
-
-        self.counter += 1
-        print ' - inpSimpleFrameGrabber: read frame @t: %f' % (time.time())        
+    def __call__(self, advance=True):
+        
+        if not advance:
+            self.setDeltaPos(-1)
+        
+        pos = self.video.get(cv2.cv.CV_CAP_PROP_POS_FRAMES)
+        #self.counter += 1
+        #print ' - inpSimpleFrameGrabber: read frame @t: %f' % (time.time())        
         img = cv2.cvtColor(self.video.read()[1], cv2.COLOR_BGR2GRAY)
-        print ' - inpSimpleFrameGrabber: frame nr %.0f read finish @t: %f' % (self.counter, time.time())    
+        print ' - inpSimpleFrameGrabber: frame nr %.0f read finish @t: %f' % (pos, time.time())    
         #print img
-        return [self.counter, img]
-        
-
+        return [pos, img]            
+    
+    
+    def setPos(self, pos):
+        self.video.set(cv2.cv.CV_CAP_PROP_POS_FRAMES, pos)
+    
+    
+    def setDeltaPos(self, delta):
+        pos = self.video.get(cv2.cv.CV_CAP_PROP_POS_FRAMES)
+        self.video.set(cv2.cv.CV_CAP_PROP_POS_FRAMES, pos+delta)
 
 if __name__ == '__main__':
     #getData()

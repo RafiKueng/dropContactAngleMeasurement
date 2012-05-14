@@ -4,7 +4,7 @@ Created on Tue May 01 15:53:49 2012
 
 @author: rafik
 """
-
+"""
 import csv
 import cv2
 
@@ -46,3 +46,9 @@ class Foo():
 #t = test("testclass.csv")
 #t()
 f = Foo()
+
+"""
+
+import sys
+v = sys.argv[1]
+print v[0:-4]

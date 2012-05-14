@@ -7,6 +7,7 @@ Created on Wed Feb 08 16:59:26 2012
 
 #import time
 #import cv2
+import sys
 
 import plugins.inpSimpleFrameGrabber as inpSFG
 import plugins.inpAveragingFrameGrabber as inpAFG
@@ -20,8 +21,8 @@ import plugins.outSimpleDisplay as outSD
 import plugins.outSimpleCSVWriter as outCSV
 import plugins.outSaveFrame as outFrame
 
-#inp = inpSFG.inpSimpleFrameGrabber()
-inp1 = inpAFG.inpAveragingPlayPauseFrameGrabber()
+inp = inpSFG.inpSimpleFrameGrabber()
+#inp1 = inpAFG.inpAveragingPlayPauseFrameGrabber()
 
 #wrk0 = wrkNull.wrkNull()
 #wrk1 = wrkInv.wrkInvert()
@@ -31,12 +32,12 @@ wrk2 = wrkEdge.wrkEdgeFit()
 #out1 = outSD.outSimpleDisplay() # display brighened orignal with edges overlay in red
 #out2 = outHG.outHistogram()
 out3 = outCSV.outSimpleCSVWriter()
-out4 = outFrame.outSaveFrame()
+outIWrt = outFrame.outSaveFrame()
 outDisp = outSD.outSimpleDisplay() #display a frame on demand... (abuse the plugin)
 
 
-#inp.setup()
-inp1.setup()
+inp.setup()
+#inp1.setup()
 
 #wrk0.setup([0,1])
 #wrk1.setup([1])
@@ -46,12 +47,15 @@ wrk2.setup([1])
 #out1.setup([0,2]) #display the edidet file
 
 out3.setup([0,2])
-out4.setup([0,2])
+outIWrt.setup([0,1]) #remember: this plaugin is abused and not called with the datastream
 outDisp.setup([0,1]) #remember: this plaugin is abused and not called with the datastream
 
+v = sys.argv[1]
+print v[0:-4]
+inpfilename = v[0:-4]#"Rh111BN_11_1_100mV"
 
-#inp.config('0')
-inp1.config('bin/Rh111BN_11_1_100mV.avi', 1)
+inp.config("D:/sinergia_data/"+inpfilename+".avi")
+#inp1.config('bin/Rh111BN_11_1_100mV.avi', 1)
 
 #wrk0.config()
 #wrk1.config()
@@ -60,45 +64,62 @@ wrk2.config()
 #out0.config()
 #out1.config()
 
-folder = "outp"
-filename = "testing"
+folder = "D:/sinergia_data/outp"
+filename = inpfilename
 path = folder + "/" + filename
 
 out3.config(path)
-out4.config(path)
+outIWrt.config(path)
 
-print "there are that many frames: ", inp1.nFrames
+print "there are that many frames: ", inp.nFrames
 
-for i in range(10):
-    #inp1()
-    pass
+#take a few pictures from the start to train baseline and pipette pos
 
+inp()
+inp()
+inp()
 
-for i in range(int(inp1.nFrames)):
+trainimg = []
+for x in range(128):
+
+    trainimg.append(inp()[1])
+    
+#print trainimg
+wrk2.train(trainimg)
+
+#for i in range(425):
+#    inp()
+    #pass
+
+inp.setPos(0)
+
+for i in range(int(inp.nFrames)):
     data = []
     
     #inp()
-    data.extend(inp1())
+    data.extend(inp())
 
 
 
-    if i%1==0:
+    if i%25==0:
         data.extend(wrk2(data, True))
-        outDisp([1,wrk2.lastpic])
+        fn = data[0]
+        #outDisp([fn,wrk2.lastpic])
+        outIWrt([fn,wrk2.lastpic])
     else:
         data.extend(wrk2(data, False))
 
-    print 'angle', data[2]        
+    print '   angle', data[2].toString()     
     #out0(data)
     #out1(data)
     out3(data)
-    #out4(data)
+
 
     #cv2.waitKey()
     #exit()
     
-inp1.finish()
+inp.finish()
 wrk2.finish()
-out1.finish()
+#out1.finish()
 out3.finish()
-out4.finish()
+#out4.finish()

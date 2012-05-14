@@ -61,6 +61,8 @@ class outSaveFrame(h.AbstractPlugin):
         print ' - outSaveFrame: display frame nr %.0f @t: %f' % (data[self.inp_ch[0]], time.time())
         
         fullfilename = "{:s}{:05.0f}.{:s}".format(self.filename, data[self.inp_ch[0]], self.ext)
+        
+        print fullfilename
 
         cv2.imwrite(fullfilename, data[self.inp_ch[1]])
 

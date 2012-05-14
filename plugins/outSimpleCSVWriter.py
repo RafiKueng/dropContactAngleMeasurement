@@ -60,12 +60,13 @@ class outSimpleCSVWriter(h.AbstractPlugin):
         #self.fff = open(filename, "wb")
         self.file = open(filename + "."+ext, "wb")
         self.csvwrt = csv.writer(self.file, dialect='excel')
-        self.csvwrt.writerow(["FrameNr","Angle1","Angle2"])
+        self.csvwrt.writerow(["FrameNr","AngleL","AngleR","ResL","ResR","RootL","RootR"])
     
     def __call__(self, data):
         print ' - outSimpleCSVWriter: write data nr %.0f @t: %f' % (data[self.inp_ch[0]], time.time())
         #print [data[self.inp_ch[0]]] + data[self.inp_ch[1]]
-        self.csvwrt.writerow([data[self.inp_ch[0]]] + data[self.inp_ch[1]])
+        
+        self.csvwrt.writerow([data[self.inp_ch[0]]] + data[self.inp_ch[1]].getRes())
         self.file.flush()
         
     def finish(self):

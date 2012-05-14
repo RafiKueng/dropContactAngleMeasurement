@@ -112,22 +112,34 @@ class AbstractPlugin(object):
     
     
 class AngleMeasurement:
-    angleLeft = np.NaN
-    angleRight = np.NaN
-
-    angleLefrR2 = 0
-    angleRightR2 = 0
-
-    rootOk = False
-    rootDelta = 0
+    fNr = -1
+    #unsing [left, right]
+    angle = [np.NaN, np.NaN]    
     
-    baselineOk = False
-    baseline = [[0,0],[0,0]]
+    #angleLeft = np.NaN
+    #angleRight = np.NaN
 
-    pipetteOK = False
+    residuals = [np.NaN, np.NaN]
+
+    #angleLeftRes = -1
+    #angleRightRes = -1
+
+    root = [np.NaN, np.NaN]
+    #root = 0
     
-    fitOK = False
+    #baselineOk = False
+    #baseline = [[0,0],[0,0]]
+
+    #pipetteOK = False
     
-    def isOK(self):
-        return (self.rootOk and self.baselineOk
-                and self.pipetteOK and self.fitOK)
+    #fitOK = False
+    
+    def getRes(self):
+        return self.angle + self.residuals + self.root
+        
+    def toString(self):
+        return self.angle + self.residuals + self.root
+    
+    #def isOK(self):
+    #    return (self.rootOk and self.baselineOk
+    #            and self.pipetteOK and self.fitOK)
