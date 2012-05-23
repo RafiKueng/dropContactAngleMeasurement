@@ -112,10 +112,9 @@ class AbstractPlugin(object):
     
     
 class AngleMeasurement:
-    fNr = -1
     #unsing [left, right]
-    angle = [np.NaN, np.NaN]    
-    
+    angle = [np.NaN, np.NaN]
+   
     #angleLeft = np.NaN
     #angleRight = np.NaN
 
@@ -143,3 +142,19 @@ class AngleMeasurement:
     #def isOK(self):
     #    return (self.rootOk and self.baselineOk
     #            and self.pipetteOK and self.fitOK)
+    
+class Result:
+    fNr = -1 #frame nr
+    angle = None #the chosen angle
+    
+    angle1 = None #angle clacultated with 1st method
+    angle2 = None
+    angle3 = None
+    
+    chosen = -1 #whiotch angle messurement was chosen
+    
+    def getRes(self):
+        return self.angle.getRes() + [self.chosen] + self.angle1.getRes() + self.angle2.getRes() + self.angle3.getRes()
+        
+    def toString(self):
+        return self.angle.toString()

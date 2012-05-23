@@ -97,7 +97,8 @@ class wrkEdgeFit(h.AbstractPlugin):
                 pipette_x_min.append(tmp_p_min)
                 pipette_x_max.append(tmp_p_max)
         
-        
+                #print tmp_p_min, tmp_p_max
+                
                 set_l = []
                 set_r = [] 
                 for contour in contours:
@@ -172,15 +173,35 @@ class wrkEdgeFit(h.AbstractPlugin):
             
             
             
-        self.pipette_x_min= sum(pipette_x_min)/len(pipette_x_min)
-        self.pipette_x_max= sum(pipette_x_max)/len(pipette_x_max)
+        ave_pipette_x_min= sum(pipette_x_min)/len(pipette_x_min)
+        ave_pipette_x_max= sum(pipette_x_max)/len(pipette_x_max)
         self.baseline_pos= sum(baseline_pos)/len(baseline_pos)
 
+        print "min"
+        for i in pipette_x_min:
+            print i
+        print 'max'
+        for i in pipette_x_max:
+            print i
+        
+        # filter out all extrem values (far to much on the right side)
+        chosen = []
+        for val in pipette_x_min:
+            if val > ave_pipette_x_min-20:
+                chosen.append(val)
+        self.pipette_x_min= int(median(chosen))    
+
+
+        chosen = []
+        for val in pipette_x_max:
+            if val < ave_pipette_x_max+20:
+                chosen.append(val)
+        self.pipette_x_max= int(median(chosen))            
 #median mode
         #self.pipette_x_min= int(median(pipette_x_min))
         #self.pipette_x_max= int(median(pipette_x_max))
         #self.baseline_pos= int(median(baseline_pos))
-            
+        
         print "training finished:"
         print " pipette_x_min:", self.pipette_x_min, "of", len(pipette_x_min)
         print " pipette_x_max:", self.pipette_x_max, "of", len(pipette_x_max)
@@ -193,7 +214,10 @@ class wrkEdgeFit(h.AbstractPlugin):
     
     def __call__(self, data, paintPic=True):
         
-        angle = h.AngleMeasurement();
+        angle1 = h.AngleMeasurement();
+        angle2 = h.AngleMeasurement();
+        angle3 = h.AngleMeasurement();
+
 
         gray = data[self.inp_ch[0]]
         edges = np.zeros(np.shape(gray), dtype=np.uint8)
@@ -255,9 +279,9 @@ class wrkEdgeFit(h.AbstractPlugin):
                 #print "res:", residuals/len(x)
                 #print z
                 if len(residuals)>0:
-                    angle.residuals[i] = (residuals/len(x))[0]
+                    angle1.residuals[i] = (residuals/len(x))[0]
                 else:
-                    angle.residuals[i] = -1
+                    angle1.residuals[i] = -1
                 
                 #print z
                 poly = np.poly1d(z)
@@ -287,9 +311,9 @@ class wrkEdgeFit(h.AbstractPlugin):
                 if not root==np.Inf:
                     deriv = poly.deriv()
                     slope = deriv(root)
-                    angle.angle[i] = abs(np.arctan(slope))*180/np.pi                    
+                    angle1.angle[i] = abs(np.arctan(slope))*180/np.pi                    
                     _root[i] = root
-                    angle.root[i] = root
+                    angle1.root[i] = root
 
 #    \--------end fit
     
@@ -342,8 +366,16 @@ class wrkEdgeFit(h.AbstractPlugin):
                                  (0,0,255), 1)
                
             self.lastpic = cont3
-
-        return [angle]
+        
+        res = h.Result()
+        res.angle = angle1
+        res.angle1 = angle1
+        res.angle2 = angle1
+        res.angle3 = angle1
+        res.chosen = 1
+        res.fNr = data[self.inp_ch[0]]
+        
+        return [res]
         
         
 

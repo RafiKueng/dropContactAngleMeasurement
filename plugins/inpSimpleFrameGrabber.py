@@ -45,7 +45,7 @@ class inpSimpleFrameGrabber(h.AbstractPlugin):
         self.video = cv2.VideoCapture(filename)
         
         self.nFrames = self.video.get(cv2.cv.CV_CAP_PROP_FRAME_COUNT)
-        
+        self.fps = self.video.get(cv2.cv.CV_CAP_PROP_FPS)
 
     def __call__(self, advance=True):
         
@@ -68,6 +68,12 @@ class inpSimpleFrameGrabber(h.AbstractPlugin):
     def setDeltaPos(self, delta):
         pos = self.video.get(cv2.cv.CV_CAP_PROP_POS_FRAMES)
         self.video.set(cv2.cv.CV_CAP_PROP_POS_FRAMES, pos+delta)
+        
+    def getFrameNr(self, pos):
+        self.video.set(cv2.cv.CV_CAP_PROP_POS_FRAMES, pos)
+        img = cv2.cvtColor(self.video.read()[1], cv2.COLOR_BGR2GRAY)
+        return [pos, img]
+        
 
 if __name__ == '__main__':
     #getData()

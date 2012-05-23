@@ -71,25 +71,29 @@ path = folder + "/" + filename
 out3.config(path)
 outIWrt.config(path)
 
-print "there are that many frames: ", inp.nFrames
 
 #take a few pictures from the start to train baseline and pipette pos
 
-inp()
-inp()
-inp()
+#inp()
+#inp()
+#inp()
+
+print 'nframes:', inp.nFrames, 'fps:', inp.fps
 
 trainimg = []
-for x in range(128):
+for x in range(64):
 
-    trainimg.append(inp()[1])
+    img = inp.getFrameNr(inp.nFrames//64*x)[1]
+    #outDisp([x,img])
+    trainimg.append(img)
     
 #print trainimg
 wrk2.train(trainimg)
 
-#for i in range(425):
-#    inp()
-    #pass
+#for d in trainimg:
+#    wrk2([1, d], True)
+#    outDisp([x,wrk2.lastpic])
+    
 
 inp.setPos(0)
 
@@ -98,6 +102,9 @@ for i in range(int(inp.nFrames)):
     
     #inp()
     data.extend(inp())
+    
+    #add the time in msec    
+    data.append(i*1000/inp.fps)
 
 
 
@@ -109,7 +116,7 @@ for i in range(int(inp.nFrames)):
     else:
         data.extend(wrk2(data, False))
 
-    print '   angle', data[2].toString()     
+    print '   angle', data[3].toString()     
     #out0(data)
     #out1(data)
     out3(data)
