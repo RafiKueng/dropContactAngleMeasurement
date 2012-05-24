@@ -8,6 +8,8 @@ Created on Wed Feb 08 16:59:26 2012
 #import time
 #import cv2
 import sys
+import os
+import numpy as np
 
 import plugins.inpSimpleFrameGrabber as inpSFG
 import plugins.inpAveragingFrameGrabber as inpAFG
@@ -51,7 +53,7 @@ outIWrt.setup([0,1]) #remember: this plaugin is abused and not called with the d
 outDisp.setup([0,1]) #remember: this plaugin is abused and not called with the datastream
 
 v = sys.argv[1]
-print v[0:-4]
+#print v[0:-4]
 inpfilename = v[0:-4]#"Rh111BN_11_1_100mV"
 
 inp.config("D:/sinergia_data/"+inpfilename+".avi")
@@ -78,16 +80,30 @@ outIWrt.config(path)
 #inp()
 #inp()
 
-print 'nframes:', inp.nFrames, 'fps:', inp.fps
+print '  nframes:', inp.nFrames, 'fps:', inp.fps
+#sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
 
+print "Read frames for training"
 trainimg = []
+
+sys.stdout.write('  [')
+for i in range(64):
+    sys.stdout.write('.')
+sys.stdout.write(']')
+for i in range(64+1):
+    sys.stdout.write('\b')
+sys.stdout.flush()
+
 for x in range(64):
 
     img = inp.getFrameNr(inp.nFrames//64*x)[1]
     #outDisp([x,img])
     trainimg.append(img)
-    
-#print trainimg
+    sys.stdout.write('*')
+    sys.stdout.flush()
+sys.stdout.write('\n')
+sys.stdout.flush()  
+#print "\nTrain the Worker"
 wrk2.train(trainimg)
 
 #for d in trainimg:
@@ -99,34 +115,39 @@ inp.setPos(0)
 
 for i in range(int(inp.nFrames)):
     data = []
-    
+    saved = False
     #inp()
     data.extend(inp())
     
     #add the time in msec    
     data.append(i*1000/inp.fps)
 
+    # do the work
+    data.extend(wrk2(data, i%25==0)) #save each 25th frame
 
+    # write the frame?
+    if wrk2.saveImg:
+        outIWrt([data[0],wrk2.lastpic])
 
-    if i%25==0:
-        data.extend(wrk2(data, True))
-        fn = data[0]
-        #outDisp([fn,wrk2.lastpic])
-        outIWrt([fn,wrk2.lastpic])
-    else:
-        data.extend(wrk2(data, False))
-
-    print '   angle', data[3].toString()     
+    #status output to stdout
+    print '  f#:%04i (%3i%%) | ch:%2i | ang:%4s,%4s | res:%4s,%4s | bas:%4s,%4s ' % (
+            data[0], data[0]*100 // inp.nFrames,
+            data[3].chosen,
+            '----' if np.isnan(data[3].angle.angle[0]) else '%4.1f'%data[3].angle.angle[0],
+            '----' if np.isnan(data[3].angle.angle[1]) else '%4.1f'%data[3].angle.angle[1],
+            '----' if np.isnan(data[3].angle.residuals[0]) else '%4i'%data[3].angle.residuals[0],
+            '----' if np.isnan(data[3].angle.residuals[1]) else '%4i'%data[3].angle.residuals[1],
+            '----' if np.isnan(data[3].angle.root[0]) else '%4i'%data[3].angle.root[0],
+            '----' if np.isnan(data[3].angle.root[1]) else '%4i'%data[3].angle.root[1]
+            ) + ('*' if wrk2.saveImg else ' ')
+    
     #out0(data)
     #out1(data)
-    out3(data)
+    out3(data) #write to csv
 
-
-    #cv2.waitKey()
-    #exit()
     
-inp.finish()
-wrk2.finish()
+#inp.finish()
+#wrk2.finish()
 #out1.finish()
-out3.finish()
+out3.finish() #close file
 #out4.finish()

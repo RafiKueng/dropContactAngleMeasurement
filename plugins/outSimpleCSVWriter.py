@@ -52,7 +52,7 @@ class outSimpleCSVWriter(h.AbstractPlugin):
 
     
     def config(self, filename, ext = "csv"):
-        print 'config csv writer: ' + filename + "."+ext
+        print 'outSimpleCSVWriter: config\n  outpath:' + filename + "."+ext
         #self.f = open(filename, "wb")
         #self.f.write("testingggggg")
         #self.writer = csv.writer(self.f)
@@ -66,7 +66,7 @@ class outSimpleCSVWriter(h.AbstractPlugin):
                               "AngleL3","AngleR3","ResL3","ResR3","RootL3","RootR3"])
     
     def __call__(self, data):
-        print ' - outSimpleCSVWriter: write data nr %.0f @t: %f' % (data[self.inp_ch[0]], time.time())
+        #print ' - outSimpleCSVWriter: write data nr %.0f @t: %f' % (data[self.inp_ch[0]], time.time())
         #print [data[self.inp_ch[0]]] + data[self.inp_ch[1]]
         
         self.csvwrt.writerow([data[0]] + [data[2]] + data[3].getRes())

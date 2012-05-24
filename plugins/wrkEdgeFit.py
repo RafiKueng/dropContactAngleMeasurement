@@ -12,8 +12,8 @@ import matplotlib.pyplot as plt
 
 from scipy import optimize 
 import cv2
-import random as rnd
-#import time
+#import random as rnd
+import sys
 
 
 def median(y):
@@ -48,7 +48,7 @@ class wrkEdgeFit(h.AbstractPlugin):
     def config(self):
         
         
-        self.contrast_adj = 1.1 #simple factor for getting more contrast in picture
+        self.contrast_adj = 2 #1.1 #simple factor for getting more contrast in picture
 
         self.canny_low_threshold = 50
         self.canny_hi_threshold = 50*7
@@ -57,6 +57,11 @@ class wrkEdgeFit(h.AbstractPlugin):
         self.hough_minLineLength=30
         self.hough_maxLineGap=20
 
+        #how cloose can contour points be to the pipette, before being ignored..
+        self.pip_offset = 20     #was 30 for run 1   
+
+
+        self.fit_small_closeness = 50 # for the fitting of small angle, points how close to baseline are considered (in px)         
 
 
         self.baseline = 377
@@ -64,15 +69,25 @@ class wrkEdgeFit(h.AbstractPlugin):
 
     def train(self, imgs):
         
-        print "training with", len(imgs), "images"
+        print "wrkEdgeFit: Training the worker with", len(imgs), "images"
         
         pipette_x_min=[]
         pipette_x_max=[]
         baseline_pos=[]
         
+        sys.stdout.write('  [')
+        for i in range(len(imgs)):
+            sys.stdout.write('.')
+        sys.stdout.write(']')
+        for i in range(len(imgs)+1):
+            sys.stdout.write('\b')
+        sys.stdout.flush()
+        
         
         for i, img in enumerate(imgs):
-            print i
+            sys.stdout.write('*')
+            sys.stdout.flush()
+
             gray = np.uint8(np.clip(np.uint32(img) * 1.1, 0, 255))
             edges = np.zeros(np.shape(gray), dtype=np.uint8)
             edges = cv2.Canny(gray,self.canny_low_threshold,self.canny_hi_threshold, edges, 3, L2gradient=True)
@@ -172,19 +187,20 @@ class wrkEdgeFit(h.AbstractPlugin):
     
             
             
-            
+        sys.stdout.write('\n')
+        sys.stdout.flush()   
         ave_pipette_x_min= sum(pipette_x_min)/len(pipette_x_min)
         ave_pipette_x_max= sum(pipette_x_max)/len(pipette_x_max)
         self.baseline_pos= sum(baseline_pos)/len(baseline_pos)
 
-        print "min"
-        for i in pipette_x_min:
-            print i
-        print 'max'
-        for i in pipette_x_max:
-            print i
+        #print "min"
+        #for i in pipette_x_min:
+        #    print i
+        #print 'max'
+        #for i in pipette_x_max:
+        #    print i
         
-        # filter out all extrem values (far to much on the right side)
+        # filter out all extrem values (far to much on the right/left side)
         chosen = []
         for val in pipette_x_min:
             if val > ave_pipette_x_min-20:
@@ -212,7 +228,9 @@ class wrkEdgeFit(h.AbstractPlugin):
     
 
     
-    def __call__(self, data, paintPic=True):
+    def __call__(self, data, saveImg=True):
+        
+        self.saveImg = saveImg
         
         angle1 = h.AngleMeasurement();
         angle2 = h.AngleMeasurement();
@@ -242,15 +260,19 @@ class wrkEdgeFit(h.AbstractPlugin):
     
 
 #    /------- distribute the found countour pixels to 2 sets of interessting points, left and right side
+        # delete the part in the middle (pipette)
+
+
+        
         set_l = []
         set_r = [] 
         for contour in contours:
             for points in contour:
                 for point in points:
                     #print np.shape(point), len(point), type(point)
-                    if point[0]<self.pipette_x_min-30:
+                    if point[0]<self.pipette_x_min-self.pip_offset:
                         set_l.append(np.array([point]))
-                    elif point[0]>self.pipette_x_max+30:
+                    elif point[0]>self.pipette_x_max+self.pip_offset:
                         set_r.append(np.array([point]))
         
         set_l.sort(key=lambda _: _[0][1])
@@ -267,14 +289,19 @@ class wrkEdgeFit(h.AbstractPlugin):
             else:
                 return x
 
-        #angle = [0.0,0.0]
-        _root = [0,0]
-        _poly = [0,0]
+        #_root = [0,0]
+        #_poly = [0,0]
         
+        #left and right side
         for i in [0,1]:
             if len(sets[i]) != 0:
-                x = sets[i][:,0,0]
-                y = [flip(y) for y in sets[i][:,0,1]]
+                x = np.array(sets[i][:,0,0])
+                y = np.array([flip(y) for y in sets[i][:,0,1]])
+
+                #########################
+                # 1. way to determine angle: (regular case)
+                #   fit polynomial 5th degree to points, upright coorinate system
+
                 z, residuals, rank, singular_values, rcond = np.polyfit(x, y, 5, full=True)
                 #print "res:", residuals/len(x)
                 #print z
@@ -285,7 +312,7 @@ class wrkEdgeFit(h.AbstractPlugin):
                 
                 #print z
                 poly = np.poly1d(z)
-                _poly[i]=poly
+                angle1.func[i]=poly
                 
                 #print "poly:"
                 #print poly                 
@@ -312,13 +339,135 @@ class wrkEdgeFit(h.AbstractPlugin):
                     deriv = poly.deriv()
                     slope = deriv(root)
                     angle1.angle[i] = abs(np.arctan(slope))*180/np.pi                    
-                    _root[i] = root
                     angle1.root[i] = root
+                    
+                    
+                #########################
+                # 2. way to determine angle: (small angles)
+                #   fit straight line to nearest points, upright coorinate system   
+                  
+                
+                sel = y-self.baseline_pos < self.fit_small_closeness                
+                if sum(sel)>10: #if there are 10 pixels or more in the selection, take those....
+                    yc = y[sel]
+                    xc = x[sel]
+                else: #else just take the first 50 points or less
+                    yc = y[0:min(50,len(y))]
+                    xc = x[0:min(50,len(x))]
+
+             
+                
+                z, residuals, rank, singular_values, rcond = np.polyfit(xc, yc, 1, full=True)
+                #print "res:", residuals/len(x)
+                #print z
+                if len(residuals)>0:
+                    angle2.residuals[i] = (residuals/len(xc))[0]
+                else:
+                    angle2.residuals[i] = -1
+                
+                poly2 = np.poly1d(z)
+                angle2.func[i]=poly2
+                #roots = np.roots(poly2-self.baseline_pos)
+                #if len(roots)>1:
+                #    print 'len roots >1 in 2'
+                #    root = roots[-1]
+                #else:
+                #    root = roots[0]
+                angle2.root[i] = int(np.roots(poly2-self.baseline_pos)[0])
+                angle2.angle[i] = abs(np.arctan(poly2[1]))*180/np.pi
+                
+                
+                #########################
+                # 3. way to determine angle: (huge angles close to 90)
+                #   fit straight line to nearest points, y=x mirrored coorinate system
+                
+                #self.fit_small_closeness = 50 # for the fitting of small angle, points how close to baseline are considered (in px)           
+                
+                sel = y-self.baseline_pos < self.fit_small_closeness                
+                if sum(sel)>10: #if there are 10 pixels or more in the selection, take those....
+                    xc = y[sel]  # and points are mirrored x=y...
+                    yc = x[sel]
+                else: #else just take the first 50 points or less
+                    xc = y[0:min(50,len(y))]
+                    yc = x[0:min(50,len(x))]
+
+             
+                
+                z, residuals, rank, singular_values, rcond = np.polyfit(xc, yc, 1, full=True)
+                #print "res:", residuals/len(x)
+                #print z
+                if len(residuals)>0:
+                    angle3.residuals[i] = (residuals/len(xc))[0]
+                else:
+                    angle3.residuals[i] = -1
+                
+                invpoly = np.poly1d(z)
+                poly = np.poly1d([1./z[0], -z[1]/z[0]])
+                angle3.func[i]=poly
+                angle3.root[i] = int(invpoly(self.baseline_pos))
+                angle3.angle[i] = abs(np.arctan(poly[1]))*180/np.pi                
+                
 
 #    \--------end fit
-    
+
+
+
+#    /--------choose best fit
+
+        res = h.Result()
+        res.angle = h.AngleMeasurement()
+        res.angle1 = angle1
+        res.angle2 = angle2
+        res.angle3 = angle3
+        res.chosen = 0
+        res.fNr = data[0]
+
+        angarr = [angle1, angle2, angle3]        
         
-        if paintPic == True:
+        #sel = [[True, True], [True, True], [True, True]]
+
+
+            
+            
+        for i in [0,1]:
+            ang_av = np.average([ang.angle[i] for ang in angarr if not np.isnan(ang.root[i])])
+        
+            ch = 1
+            if ang_av > 75:
+                ch = 3
+            elif ang_av < 45:
+                ch = 2
+            
+            if angarr[ch-1].residuals[i]>20:
+                saveImg = True
+            
+            res.angle.angle[i] = angarr[ch-1].angle[i]
+            res.angle.func[i] = angarr[ch-1].func[i]
+            res.angle.residuals[i] = angarr[ch-1].residuals[i]
+            res.angle.root[i] = angarr[ch-1].root[i]
+            
+            res.chosen += ch*10**(1-i) #linke wahl an zehnerstelle, rechte wahl an einer stelle
+
+
+        rt_av = np.average([ang.root[i] for ang in angarr if not np.isnan(ang.root[i])])
+        rt_d = np.sum([(ang.root[i]-rt_av)**2 for ang in angarr if not np.isnan(ang.root[i])])
+
+        #print rt_av, rt_d
+        if rt_d > 20:
+            self.saveImg = True            
+        
+        
+        
+
+
+
+#    \--------end choose
+
+
+
+#    /-------------- paint image
+        
+        if self.saveImg == True:
             #create pic
             cont3 = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
             
@@ -328,52 +477,85 @@ class wrkEdgeFit(h.AbstractPlugin):
             cont3 = cv2.merge([mix2, mix2, mix1])
             
             #adding contours to pic
-            greenshades = [255, 128, 64, 32, 192, 148, 50] + [255]*64
+            #greenshades = [255, 128, 64, 32, 192, 148, 50] + [255]*64
             for i, c in enumerate(contours):
-                linecolor  = (0, greenshades[i], 0)#rnd.randint(8,15)*16, 0) #shades of green
-                cv2.drawContours(cont3, contours, i, linecolor, 3)
+            #    linecolor  = (0, greenshades[i], 0)#rnd.randint(8,15)*16, 0) #shades of green
+            #    cv2.drawContours(cont3, contours, i, linecolor, 3)
+                 cv2.drawContours(cont3, contours, i, (0,200,0), 3)
             
             #draw the hough lines (pipette detection)
             cv2.line(cont3, (self.pipette_x_max, 0), (self.pipette_x_max, 1024), (39, 127, 255), 1, 8)
             cv2.line(cont3, (self.pipette_x_min, 0), (self.pipette_x_min, 1024), (39, 127, 255), 1, 8)
+            cv2.line(cont3, (self.pipette_x_max+self.pip_offset, 0), (self.pipette_x_max+self.pip_offset, 1024), (39, 127, 255), 1, 8)
+            cv2.line(cont3, (self.pipette_x_min-self.pip_offset, 0), (self.pipette_x_min-self.pip_offset, 1024), (60, 160, 255), 1, 8)
                 
             #draw the baseline
             cv2.line(cont3, (1, self.baseline_pos), (1279, self.baseline_pos), (0,255,255), 1)
+            # draw the threshold line
+            cv2.line(cont3, (1, self.baseline_pos+self.fit_small_closeness), (1279, self.baseline_pos+self.fit_small_closeness), (0,128,128), 1)
 
             #draw the fitted poly and the angle
-            for i in [0,1]:
-                if _root[i] != np.NaN and _root[i] != np.Inf and _root[i] !=0 and len(sets[i]) != 0:
-                    deriv = _poly[i].deriv()
-                    slope = deriv(_root[i])
-                    fitline = np.poly1d([slope, _poly[i](_root[i])-slope*_root[i]])
-                    #print "fitline", fitline
-                    #print "root:",i, _root[i]
+            for j in [0,1,2,3]:
+                
+                if j==0:
+                    ang=angle1
+                    col = (255,0,0)
+                elif j==1:
+                    ang=angle2
+                    col = (255,80,0)
+                elif j==2:
+                    ang=angle3
+                    col = (255,255,0)
+                elif j==3: #the chosen one
+                    ang=res.angle
+                    col = (0,0,255)
                     
-                    xp = range(1,1279)
-                    yp = np.int32(np.clip(_poly[i](xp),0,1023))
-                    pnts = np.array([np.column_stack((xp, yp))])
+                for i in [0,1]:
+                    root = ang.root[i]
+                    poly = ang.func[i]
+                    #print poly
+                    #print root
+                    #print '-----'
+                    #print angle1.angle, angle1.func
+                    #print angle2.angle, angle2.func
                     
-                    cv2.polylines(cont3, pnts, False, (255,255*i,0), 1)
-                    
-                    dx = 100
-
-              
-
-                    if _root[i]>0 and _root[i]<2000 and fitline(_root[i]) >0 and fitline(_root[i]) <2000:
-                        cv2.line(cont3,
-                                 (_root[i]-dx, int(fitline(_root[i]-dx))),
-                                 (_root[i]+dx, int(fitline(_root[i]+dx))),
-                                 (0,0,255), 1)
-               
+                    if root != np.NaN and root != np.Inf and root !=0 and len(sets[i]) != 0:
+                        deriv = poly.deriv()
+                        slope = deriv(root)
+                        fitline = np.poly1d([slope, poly(root)-slope*root])
+                        #print "fitline", fitline
+                        #print "root:",i, _root[i]
+                        
+                        if j<3:
+                            xp = range(1,1279)
+                            yp = np.int32(np.clip(poly(xp),0,1023))
+                            pnts = np.array([np.column_stack((xp, yp))])
+                            
+                            cv2.polylines(cont3, pnts, False, col, 1)
+                        
+                        
+                        
+                        #draw the angle
+                        dx = 100 #half of the line length
+    
+                        if root>0 and root<2000 and fitline(root-dx) >0 and fitline(root-dx) <2000 and fitline(root+dx) >0 and fitline(root+dx) <2000:
+                            #if data[0] > 680:
+                            #    print 'debug:', root-dx, fitline(root-dx), root+dx, fitline(root+dx), col
+                            y1 = fitline(root-dx)
+                            y2 = fitline(root+dx)
+                            #y1 = y1 if y1 > 0 else 0
+                            #y1 = y1 if y1 < 1500 else 1500
+                            #y2 = y2 if y2 > 0 else 0
+                            #y2 = y2 if y2 < 1500 else 1500                            
+                            
+                            
+                            cv2.line(cont3,
+                                     (root-dx, int(y1)),
+                                     (root+dx, int(y2)),
+                                     col, 1)
+            
+            cv2.putText(cont3, 'f: %4i t: %6.2fs sel:%1i angL: %4.1f angR: %4.1f'%(data[0], data[2]/1000., res.chosen, res.angle.angle[0], res.angle.angle[1]), (10,30), cv2.FONT_HERSHEY_PLAIN,1.2,(200,200,200))
             self.lastpic = cont3
-        
-        res = h.Result()
-        res.angle = angle1
-        res.angle1 = angle1
-        res.angle2 = angle1
-        res.angle3 = angle1
-        res.chosen = 1
-        res.fNr = data[self.inp_ch[0]]
         
         return [res]
         

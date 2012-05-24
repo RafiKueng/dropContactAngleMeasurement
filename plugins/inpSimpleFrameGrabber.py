@@ -20,7 +20,7 @@ import time
 class inpSimpleFrameGrabber(h.AbstractPlugin):
 
     def __init__(self):
-        print ' - inpSimpleFrameGrabber: Init @t: %f' % (time.time())
+        #print 'inpSimpleFrameGrabber\n  init @t: %f' % (time.time())
 
         self.inputinfo = None
         
@@ -41,7 +41,7 @@ class inpSimpleFrameGrabber(h.AbstractPlugin):
     
 
     def config(self, filename):
-        print ' - inpSimpleFrameGrabber: config @t: %f' % (time.time())
+        print 'inpSimpleFrameGrabber: config\n  @t: %f' % (time.time())
         self.video = cv2.VideoCapture(filename)
         
         self.nFrames = self.video.get(cv2.cv.CV_CAP_PROP_FRAME_COUNT)
@@ -56,7 +56,7 @@ class inpSimpleFrameGrabber(h.AbstractPlugin):
         #self.counter += 1
         #print ' - inpSimpleFrameGrabber: read frame @t: %f' % (time.time())        
         img = cv2.cvtColor(self.video.read()[1], cv2.COLOR_BGR2GRAY)
-        print ' - inpSimpleFrameGrabber: frame nr %.0f read finish @t: %f' % (pos, time.time())    
+        #print ' - inpSimpleFrameGrabber: frame nr %.0f read finish @t: %f' % (pos, time.time())    
         #print img
         return [pos, img]            
     
