@@ -63,7 +63,9 @@ class outSimpleCSVWriter(h.AbstractPlugin):
         self.csvwrt.writerow(["FrameNr","ms", "AngleL","AngleR","ResL","ResR","RootL","RootR","chosenAngle",
                               "AngleL1","AngleR1","ResL1","ResR1","RootL1","RootR1",
                               "AngleL2","AngleR2","ResL2","ResR2","RootL2","RootR2",
-                              "AngleL3","AngleR3","ResL3","ResR3","RootL3","RootR3"])
+                              "AngleL3","AngleR3","ResL3","ResR3","RootL3","RootR3",
+                              "AngleL_Mean","AngleR_Mean","ResL_Mean","ResR_Mean","RootL_Mean","RootR_Mean",
+                              "AngleL_Median","AngleR_Median","ResL_Median","ResR_Median","RootL_Median","RootR_Median",])
     
     def __call__(self, data):
         #print ' - outSimpleCSVWriter: write data nr %.0f @t: %f' % (data[self.inp_ch[0]], time.time())

@@ -154,10 +154,13 @@ class Result:
     angle2 = None
     angle3 = None
     
+    mean_angle = None
+    median_angle = None 
+    
     chosen = -1 #whiotch angle messurement was chosen
     
     def getRes(self):
-        return self.angle.getRes() + [self.chosen] + self.angle1.getRes() + self.angle2.getRes() + self.angle3.getRes()
+        return self.angle.getRes() + [self.chosen] + self.angle1.getRes() + self.angle2.getRes() + self.angle3.getRes() + self.mean_angle.getRes() + self.median_angle.getRes()
         
     def toString(self):
         return self.angle.toString()

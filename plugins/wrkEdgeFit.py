@@ -14,7 +14,7 @@ from scipy import optimize
 import cv2
 #import random as rnd
 import sys
-
+from collections import deque
 
 def median(y):
     z = len(y)
@@ -44,12 +44,15 @@ class wrkEdgeFit(h.AbstractPlugin):
             
         self.outputinfo = [out0]
         
+        
+        
     
     def config(self):
         
         
-        self.contrast_adj = 2 #1.1 #simple factor for getting more contrast in picture
-
+        self.contrast_adj = 1.1 #1.1 #simple factor for getting more contrast in picture
+        self.bright_adj = 10
+        
         self.canny_low_threshold = 50
         self.canny_hi_threshold = 50*7
         
@@ -66,6 +69,9 @@ class wrkEdgeFit(h.AbstractPlugin):
 
         self.baseline = 377
 
+        self.smooth_over = 5 #smooths (mean, median) over the last x frames
+        
+        self.queue = deque(maxlen=self.smooth_over)
 
     def train(self, imgs):
         
@@ -242,7 +248,7 @@ class wrkEdgeFit(h.AbstractPlugin):
 
 
 #    /---- get more contrast ----
-        gray = np.uint8(np.clip(np.uint32(gray) * 1.1, 0, 255))
+        gray = np.uint8(np.clip(np.uint32(gray) * self.contrast_adj + self.bright_adj, 0, 255))
 #    \------end contrast
 
 
@@ -427,16 +433,21 @@ class wrkEdgeFit(h.AbstractPlugin):
         #sel = [[True, True], [True, True], [True, True]]
 
 
+
             
             
         for i in [0,1]:
             ang_av = np.average([ang.angle[i] for ang in angarr if not np.isnan(ang.root[i])])
         
+            #TODO: make this better.. maybe use something like a rating system
             ch = 1
             if ang_av > 75:
                 ch = 3
             elif ang_av < 45:
                 ch = 2
+                
+            if np.isnan(angarr[ch-1].root[i]):
+                ch = (ch%3)+1 #if this is nan, switch to next fit TODO: make a better choice...
             
             if angarr[ch-1].residuals[i]>20:
                 saveImg = True
@@ -457,9 +468,42 @@ class wrkEdgeFit(h.AbstractPlugin):
             self.saveImg = True            
         
         
+        mean_angle = h.AngleMeasurement()
+        median_angle = h.AngleMeasurement()
         
+        self.queue.append(res.angle)
+        
+        def medi(y):
+            z = len(y)
+            if not z%2:
+                return (y[(z/2)-1] + y[z/2]) / 2.
+            return y[z/2]
 
 
+        for i in [0,1]:
+            #print 'gogo', i
+            v_ang = []
+            v_root = []
+            v_res = []
+            for ang in self.queue:
+                v_ang.append(ang.angle[i])
+                v_root.append(ang.root[i])
+                v_res.append(ang.residuals[i])
+            
+            v_ang.sort()              
+            v_root.sort()
+            v_res.sort()
+            
+            mean_angle.angle[i] = sum(v_ang) / len(v_ang)
+            mean_angle.root[i] = sum(v_root) / len(v_root)
+            mean_angle.residuals[i] = sum(v_res) / len(v_res)
+            
+            median_angle.angle[i] = medi(v_ang)
+            median_angle.root[i] = medi(v_root)
+            median_angle.residuals[i] = medi(v_res)
+
+        res.mean_angle = mean_angle
+        res.median_angle = median_angle
 
 #    \--------end choose
 
