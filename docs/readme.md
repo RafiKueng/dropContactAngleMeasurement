@@ -2,7 +2,7 @@ DROM C.A.M. (contact angle messurement) - README
 ================================================
 
 * **0\. Administrative Infos**  
-    suff thats nice to know
+    stuff thats nice to know
 * **1\. About - Introduction**  
     what this program does in one (or two) sentences
 * **2\. How to use the data generated**  
@@ -61,40 +61,42 @@ For example:
 -----------------
 Here is a list of each data field in the table and a short description:
 
-*   FrameNr  
+*   `FrameNr`  
     the number of the frame
-*   ms  
+*   `ms`  
     the timestamp of the frame
-*   chosenAngle  
-    two digits XY, that show which messurement was taken by the autmatic selection for the left (X) and the right (Y) side.
-    example: 
-    chosen=23 means that for the left side, the messurement 2 and for the right side, the 3rd was used.
+*   `chosenAngle`  
+    two digits `XY`, that show which messurement was taken by the autmatic selection for the left (`X`) and the right (`Y`) side.  
+    example:  
+    `chosen=23` means that for the left side, the 2nd messurement and for the right side, the 3rd was used.
       
 
-the following occure multiple time with a suffix:
-*   AngleL/ AngleR 
+the following occure multiple time with a suffix, depending on the method that was used to calculate it:
+*   `AngleL` / `AngleR`  
     the angle on the left / right side
-*   ResL / ResR 
-    the residual of the right/left hand side fit 
+*   `ResL` / `ResR`  
+    the residual of the right/left hand side fit  
     `(sum_(over all pixels) of (dist(pixel^2)) ) / numPixels`
-*   RootL / RootR 
+*   `RootL` / `RootR`  
     the footpoint on the left / right hand side
 
 possible suffixes:
-*   [none] 
+*   [`(none)`]  
     the automatically selected, best messurement (attention with this)
-*   [Mean] 
+*   [`_Mean`]  
     the average over the last X (default:5), automatically selected values
-*   [Median] 
+*   [`_Median`]  
     the median over the last X (default:5), automatically selected values
-*   [1] 
+*   [`1`]  
     results for fit of 5th degree polynomial
-*   [2] 
+*   [`2`]  
     results for linear fit of points near baseline (best for small angles < 45deg)
-*   [3] 
+*   [`3`]  
     results for linear fit of points near baseline with rotated coordinate system (best for big angles near 90deg)
 
 
+you probably want the results of a particular measurement, like the set:  
+`AngleL2`; `AngleR2`; `ResL2`; `ResR2`; `RootL2`; `RootR2`
 
 
 
@@ -116,20 +118,20 @@ you only need to setup if you want to analyse your own data...
     - install pyqt
 * install opencv
     - extract
-    - add bin to %path%
-    - add cv/build/python to %pythonpath%
+    - add bin to `%path%`
+    - add `cv/build/python` to `%pythonpath%`
 * get the programm from github
 
 
 3.2. how to use it
 -------------------
-(* edit parameters in parameters.py TODO not yet implemented)
-* run it with:
-	$ quick_eval.py inputvideofile.avi [outputdir=.]
+(* edit parameters in `parameters.py` TODO not yet implemented)
+* run it with:  
+	`$ quick_eval.py inputvideofile.avi [outputdir=.]`
 * wait
 * checkout the output
 
-you can run multiple analyses in parallel straight forward if you'd like to, have a look at the "startquickeval.cmd" script for windows in the root directory.
+you can run multiple analyses in parallel straight forward if you'd like to, have a look at the `startquickeval.cmd` script for windows in the root directory.
 
 
 
