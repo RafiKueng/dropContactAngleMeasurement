@@ -17,10 +17,9 @@ DROM C.A.M. (contact angle messurement) - README
 
 0. Administrative Infos
 -----------------------
-author: rafikueng
-version: v2
-date: 2012-06-08
-
+author: rafikueng  
+version: v2  
+date: 2012-06-08  
 data storage location: `\\dalli.physik.uzh.ch\data\ContactAngleMeasurement\Rh111BN_11`
 
 
@@ -33,14 +32,12 @@ In the recorded video files, for each frame the contours are detected (using the
 
 
 -----
-[Matas00] 
-Matas, J. and Galambos, C. and Kittler, J.V., Robust Detection of Lines Using the Progressive Probabilistic Hough Transform. CVIU 78 1, pp 119-137 (2000)
-
-[Suzuki85] 
-Suzuki, S. and Abe, K., Topological Structural Analysis of Digitized Binary Images by Border Following. CVGIP 30 1, pp 32-46 (1985)
-
-[Canny86] 
-Canny. A Computational Approach to Edge Detection, IEEE Trans. on Pattern Analysis and Machine Intelligence, 8(6), pp. 679-698 (1986).
+*   [Matas00]  
+    Matas, J. and Galambos, C. and Kittler, J.V., Robust Detection of Lines Using the Progressive Probabilistic Hough Transform. CVIU 78 1, pp 119-137 (2000)
+*   [Suzuki85]  
+    Suzuki, S. and Abe, K., Topological Structural Analysis of Digitized Binary Images by Border Following. CVGIP 30 1, pp 32-46 (1985)
+*   [Canny86]   
+    Canny. A Computational Approach to Edge Detection, IEEE Trans. on Pattern Analysis and Machine Intelligence, 8(6), pp. 679-698 (1986).
 
 
 
@@ -270,10 +267,10 @@ for each frame, the worker is called and evaluates the frame:
 -----
 5. References
 -------------
-*   [Matas00] 
+*   [Matas00]  
     Matas, J. and Galambos, C. and Kittler, J.V., Robust Detection of Lines Using the Progressive Probabilistic Hough Transform. CVIU 78 1, pp 119-137 (2000)
-*   [Suzuki85] 
+*   [Suzuki85]  
     Suzuki, S. and Abe, K., Topological Structural Analysis of Digitized Binary Images by Border Following. CVGIP 30 1, pp 32-46 (1985)
-*   [Canny86] 
+*   [Canny86]  
     Canny. A Computational Approach to Edge Detection, IEEE Trans. on Pattern Analysis and Machine Intelligence, 8(6), pp. 679-698 (1986).
 
