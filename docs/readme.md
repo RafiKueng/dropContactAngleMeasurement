@@ -1,10 +1,29 @@
 DROM C.A.M. (contact angle messurement) - README
 ================================================
 
-rafikueng
-v2 2012-06-08
+0. Administrative Infos 
+    suff thats nice to know
+1. About - Introduction 
+    what this program does in one (or two) sentences
+2. How to use the data generated 
+    how to read the tables, pictures produced
+3. How to setup and use it 
+    you want to analyse your own data? how you have to set up the tools (not complete!)
+4. Details of Evaluation 
+    all the techy details of the program
+5. References
 
-\\dalli.physik.uzh.ch\data\ContactAngleMeasurement\Rh111BN_11
+
+
+0. Administrative Infos
+-----------------------
+author: rafikueng
+version: v2
+date: 2012-06-08
+
+data storage location: `\\dalli.physik.uzh.ch\data\ContactAngleMeasurement\Rh111BN_11`
+
+
 
 1. About - Introduction
 -----------------------
@@ -31,50 +50,51 @@ there are 2 sorts of output:
 - raw data (comma separated table, csv)
 - images (jpg)
 
-The raw date contains all the data for all the frames froma video, whereas only a few selected images are saved (every 25th keyframe and frames with bad fits)
+The raw data contains all the data for all the frames from a video file, whereas only a few selected images are saved (every 25th keyframe and frames with bad fits)
 
 They can be found in the output folder (default `./outp`) and are named after the input video file. a frame number counter is added to the image files.
 
-For example:
+For example: 
 - video file name: `MessurementA.avi`
 - table: `MessurementA.csv`
 - images: `MessurementA00000.jpg`, `MessurementA00025.jpg`, `MessurementA00027.jpg`, `MessurementA00050.jpg` ...
 
 
-2.1 The Table
--------------
-Following a list of each field in the table and a short description:
-* FrameNr 
+2.1 The CSV Table
+-----------------
+Here is a list of each data field in the table and a short description:
+
+*   FrameNr  
     the number of the frame
-* ms 
+*   ms  
     the timestamp of the frame
-* chosenAngle 
+*   chosenAngle  
     two digits XY, that show which messurement was taken by the autmatic selection for the left (X) and the right (Y) side.
     example: 
     chosen=23 means that for the left side, the messurement 2 and for the right side, the 3rd was used.
       
 
 the following occure multiple time with a suffix:
-* AngleL/ AngleR 
+*   AngleL/ AngleR 
     the angle on the left / right side
-* ResL / ResR 
+*   ResL / ResR 
     the residual of the right/left hand side fit 
     `(sum_(over all pixels) of (dist(pixel^2)) ) / numPixels`
-* RootL / RootR 
+*   RootL / RootR 
     the footpoint on the left / right hand side
 
 possible suffixes:
-* [none] 
+*   [none] 
     the automatically selected, best messurement (attention with this)
-* [Mean] 
+*   [Mean] 
     the average over the last X (default:5), automatically selected values
-* [Median] 
+*   [Median] 
     the median over the last X (default:5), automatically selected values
-* [1] 
+*   [1] 
     results for fit of 5th degree polynomial
-* [2] 
+*   [2] 
     results for linear fit of points near baseline (best for small angles < 45deg)
-* [3] 
+*   [3] 
     results for linear fit of points near baseline with rotated coordinate system (best for big angles near 90deg)
 
 
@@ -84,6 +104,9 @@ possible suffixes:
 
 3. How to setup and use it
 --------------------------
+
+NOT COMPLETE
+
 you only need to setup if you want to analyse your own data...
 (very basic, more to come or just write me a mail if there are questions)
 
@@ -121,10 +144,10 @@ you can run multiple analyses in parallel straight forward if you'd like to, hav
 In this section the evaluation algorythm is explained in details.
 
 The evaluation process for one videofile (`eval_vid`) consists of 4 steps:
-- Initialisation
-- Training
-- Evaluation
-- Output
+1. Initialisation
+2. Training
+3. Evaluation
+4. Output
 
 
 4.1 Initialisation
@@ -141,13 +164,13 @@ In the first part of the program, the position of the pipette and the baseline a
 * a number of frames (`n_training_frames`; default:64) is read from the video file. They are selected evenly distributed from the whole video file (which has `n_frames`): 
 
   - for fNr from 0 to n_training_frames:
-    + trainingSet[fNr] <- video.getFrameNr(n_frames / n_training_frames * fNr)
+      * trainingSet[fNr] <- video.getFrameNr(n_frames / n_training_frames * fNr)
 
 
 * the training frames are then analysed. the details of the training algorythm (`worker.train()`):
 
   - for each frame in trainingSet do:
-    + edgesMap <- find edges in grayscale image (Canny(), using [Canny86] algorythm)
+    * edgesMap <- find edges in grayscale image (Canny(), using [Canny86] algorythm)
     + contours <- find contours in edgesMap (findContours(), using [Suzuki85] algorythm)
 
   - get the pipette position:
@@ -245,7 +268,8 @@ for each frame, the worker is called and evaluates the frame:
   
 
 -----
-
+5. References
+-------------
 [Matas00] 
 Matas, J. and Galambos, C. and Kittler, J.V., Robust Detection of Lines Using the Progressive Probabilistic Hough Transform. CVIU 78 1, pp 119-137 (2000)
 
