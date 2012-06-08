@@ -1,17 +1,17 @@
 DROM C.A.M. (contact angle messurement) - README
 ================================================
 
-0. Administrative Infos 
+* **0\. Administrative Infos**  
     suff thats nice to know
-1. About - Introduction 
+* **1\. About - Introduction**  
     what this program does in one (or two) sentences
-2. How to use the data generated 
+* **2\. How to use the data generated**  
     how to read the tables, pictures produced
-3. How to setup and use it 
+* **3\. How to setup and use it**  
     you want to analyse your own data? how you have to set up the tools (not complete!)
-4. Details of Evaluation 
+* **4\. Details of Evaluation**  
     all the techy details of the program
-5. References
+* **5\. References**  
 
 
 
