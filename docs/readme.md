@@ -20,7 +20,7 @@ DROM C.A.M. (contact angle messurement) - README
 author: rafikueng  
 version: v2  
 date: 2012-06-08  
-data storage location: `\\dalli.physik.uzh.ch\data\ContactAngleMeasurement\Rh111BN_11`
+data storage location: `\\dalli.physik.uzh.ch\data\ContactAngleMeasurement`
 
 
 
@@ -143,6 +143,7 @@ you can run multiple analyses in parallel straight forward if you'd like to, hav
 In this section the evaluation algorythm is explained in details.
 
 The evaluation process for one videofile (`eval_vid`) consists of 4 steps:
+
 1. Initialisation
 2. Training
 3. Evaluation
