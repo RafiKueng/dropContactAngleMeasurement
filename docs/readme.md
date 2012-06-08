@@ -164,39 +164,39 @@ In the first part of the program, the position of the pipette and the baseline a
 * a number of frames (`n_training_frames`; default:64) is read from the video file. They are selected evenly distributed from the whole video file (which has `n_frames`): 
 
   - for fNr from 0 to n_training_frames:
-      * trainingSet[fNr] <- video.getFrameNr(n_frames / n_training_frames * fNr)
+      + trainingSet[fNr] <- video.getFrameNr(n_frames / n_training_frames * fNr)
 
 
 * the training frames are then analysed. the details of the training algorythm (`worker.train()`):
 
   - for each frame in trainingSet do:
-    * edgesMap <- find edges in grayscale image (Canny(), using [Canny86] algorythm)
-    + contours <- find contours in edgesMap (findContours(), using [Suzuki85] algorythm)
+      + edgesMap <- find edges in grayscale image (Canny(), using [Canny86] algorythm)
+      + contours <- find contours in edgesMap (findContours(), using [Suzuki85] algorythm)
 
   - get the pipette position:
-    + verticalLines <- find vertical lines in edgesMap (HoughLinesP(), using probabilistic hough transformation, as described in [Matas00])
-    + pipettePosLeft, pipettePosRight  <- get min and max from verticalLines in x direction
+      + verticalLines <- find vertical lines in edgesMap (HoughLinesP(), using probabilistic hough transformation, as described in [Matas00])
+      + pipettePosLeft, pipettePosRight  <- get min and max from verticalLines in x direction
 
 
   - split up and sort all the contour points into 2 sets:
-    + contourPointsLeft <- all points in contours, where x component < pipettePosLeft
-    + contourPointsRight <- all points in contours, where x component > pipettePosRight
+      + contourPointsLeft <- all points in contours, where x component < pipettePosLeft
+      + contourPointsRight <- all points in contours, where x component > pipettePosRight
 
   - to get the baseline position:
-    + leftMostPoints <- all points with minimal x component from contourPointsLeft
-    + leftBaselinePosition <- average over leftMostPoints, iff exists points in contourPointsLeft that have x component bigger than point and y smaller than point. else no baseline found.
+      + leftMostPoints <- all points with minimal x component from contourPointsLeft
+      + leftBaselinePosition <- average over leftMostPoints, iff exists points in contourPointsLeft that have x component bigger than point and y smaller than point. else no baseline found.
 
-    + and similar for the right side
+      + and similar for the right side
   
   - finally do:
-    + pipettePosLeftAverage <- average over all pipettePosLeft from each frame
-    + pipettePosRightAverage <- average over all pipettePosRight from each frame
-    
-    + pipettePosLeft <- median over all pipettePosLeft that are > pipettePosLeftAverage
-    + pipettePosRight <- median over all pipettePosRight that are < pipettePosRightAverage
+      + pipettePosLeftAverage <- average over all pipettePosLeft from each frame
+      + pipettePosRightAverage <- average over all pipettePosRight from each frame
+      
+      + pipettePosLeft <- median over all pipettePosLeft that are > pipettePosLeftAverage
+      + pipettePosRight <- median over all pipettePosRight that are < pipettePosRightAverage
   
   - and for the baseline:
-    + BaselinePos <- average over all found LeftBaselinePosition and RightBaselinePosition
+      + BaselinePos <- average over all found LeftBaselinePosition and RightBaselinePosition
 
 
 
@@ -218,38 +218,38 @@ for each frame, the worker is called and evaluates the frame:
 
 * fitting I: Polynomial 5th deg: general case
   * for leftSet and rightSet do:
-    * poly1 <- fit 5th degree polynomial to set
-    * root1 <- find root of poly - baselinePos
-    * angle1 <- value of poly.derrive at root1
-    * res1 <- residuum of fit
+      * poly1 <- fit 5th degree polynomial to set
+      * root1 <- find root of poly - baselinePos
+      * angle1 <- value of poly.derrive at root1
+      * res1 <- residuum of fit
 
 * fitting II: line fit for small angles:
   * for leftSet and rightSet do:
-    * subset <- from set select points with distance to baseline < threshold (fit_small_closeness) or first 10 points
-    * poly2 <- fit line to subset
-    * root2 <- find root of poly2 - baselinePos
-    * angle2 <- arctan(slope(poly2))
-    * res2 <- residuum of fit
+      * subset <- from set select points with distance to baseline < threshold (fit_small_closeness) or first 10 points
+      * poly2 <- fit line to subset
+      * root2 <- find root of poly2 - baselinePos
+      * angle2 <- arctan(slope(poly2))
+      * res2 <- residuum of fit
     
 * fitting III: line fit for big angles:
   * for leftSet and rightSet do:
-    * subset <- from set select points with distance to baseline < threshold (fit_small_closeness) or first 10 points
-    * subset <- mirror subset at y=x plane
-    * invpoly3 <- fit line to subset
-    * poly3 <- invert invpoly3
-    * root3 <- invpoly3(baselinePos)
-    * angle3 <- arctan(slope(poly3))
-    * res3 <- residuum of fit
+      * subset <- from set select points with distance to baseline < threshold (fit_small_closeness) or first 10 points
+      * subset <- mirror subset at y=x plane
+      * invpoly3 <- fit line to subset
+      * poly3 <- invert invpoly3
+      * root3 <- invpoly3(baselinePos)
+      * angle3 <- arctan(slope(poly3))
+      * res3 <- residuum of fit
     
 
 * selection of best fit:
   * ave_angle <- average over angle1, angle2, angle3
   * if ave_angle >75:
-    * final_angle <- angle3
+      * final_angle <- angle3
   * else if average_angle < 45:
-    * final_angle <- angle2
+      * final_angle <- angle2
   * else:
-    * final_angle <- angle1
+      * final_angle <- angle1
 
 
 * create additional datasets:
@@ -261,8 +261,8 @@ for each frame, the worker is called and evaluates the frame:
 ----------
 * for each frame do:
   * if is keyframe (every 25th) or some fit parameter bad:
-    * construct a picture with data drawn
-    * save it
+      * construct a picture with data drawn
+      * save picture
   * save data to table
 
   
@@ -270,12 +270,10 @@ for each frame, the worker is called and evaluates the frame:
 -----
 5. References
 -------------
-[Matas00] 
-Matas, J. and Galambos, C. and Kittler, J.V., Robust Detection of Lines Using the Progressive Probabilistic Hough Transform. CVIU 78 1, pp 119-137 (2000)
-
-[Suzuki85] 
-Suzuki, S. and Abe, K., Topological Structural Analysis of Digitized Binary Images by Border Following. CVGIP 30 1, pp 32-46 (1985)
-
-[Canny86] 
-Canny. A Computational Approach to Edge Detection, IEEE Trans. on Pattern Analysis and Machine Intelligence, 8(6), pp. 679-698 (1986).
+*   [Matas00] 
+    Matas, J. and Galambos, C. and Kittler, J.V., Robust Detection of Lines Using the Progressive Probabilistic Hough Transform. CVIU 78 1, pp 119-137 (2000)
+*   [Suzuki85] 
+    Suzuki, S. and Abe, K., Topological Structural Analysis of Digitized Binary Images by Border Following. CVGIP 30 1, pp 32-46 (1985)
+*   [Canny86] 
+    Canny. A Computational Approach to Edge Detection, IEEE Trans. on Pattern Analysis and Machine Intelligence, 8(6), pp. 679-698 (1986).
 
