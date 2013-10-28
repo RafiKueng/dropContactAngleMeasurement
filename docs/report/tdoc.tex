@@ -1,0 +1,197 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% SPAGHETTILENS -- TECH DOKU
+%
+% by Rafael Kueng
+%
+% Based on a TeXnicCenter-Template, which was
+% by Christoph Börensen, Tino Weinkauf.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[a4paper,12pt]{scrartcl} %This is a special class provided by the KOMA script, which does a lot of adjustments to adapt the standard LaTeX classes to european habits, change to [a4paper,12pt,twoside] for doublesided layout
+
+
+%########################### Preferences #################################
+
+
+% ******** vmargin settings *********
+%\usepackage{vmargin} %This give you full control over the used page arae, it maybe not the idea od Latex to do so, but I wanted to reduce to amount of white space on the page
+%\setpapersize{A4}
+%\setmargins{3.5cm}%			%linker Rand, left edge
+					 %{1.5cm}%     %oberer Rand, top edge
+           %{14.7cm}%		%Textbreite, text width
+           %{23.42cm}%   %Texthoehe, text hight
+           %{14pt}%			%Kopfzeilenhöhe, header hight
+           %{1cm}%   	  %Kopfzeilenabstand, header distance
+           %{0pt}%				%Fußzeilenhoehe footer hight
+           %{2cm}%    	  %Fusszeilenabstand, footer distance         
+
+% ********* Font definiton ************
+\usepackage[T1]{fontenc}
+%\usepackage[scaled=.83]{beramono}
+\usepackage{lmodern}
+\usepackage[utf8]{inputenc} % as usual
+\usepackage[english]{babel}
+
+
+% FONTS
+%\usepackage{lmodern} %Type1-Schriftart für nicht-englische Texte
+%\usepackage{mathptmx}  	%mathematical fonts for use with times, I encountered some problems using this package togather with pdftex, which I was not able to resolve
+
+\setkomafont{disposition}{\bfseries} % chagne koma headings back
+
+
+% ********* Graphics definition *******
+\usepackage[pdftex]{graphicx} % required to import graphic files
+\usepackage{color} %allows to mark some entries in the tables with color
+%\usepackage{eso-pic} % these two are required to add the little picture on top of every page
+%\usepackage{everyshi} % these two are required to add the little picture on top of every page
+\renewcommand{\floatpagefraction}{0.7} %default:0.5 allows two big pictures on one page
+
+
+% ********* Table layout **************
+%\usepackage{booktabs}	  	%design of table, has an excellent documentation
+%\usepackage{lscape}			%use this if you want to rotate the table together with the lines around the table
+
+% ********* Caption Layout ************
+%\usepackage{ccaption} % allows special formating of the captions
+%\captionnamefont{\bf\footnotesize\sffamily} % defines the font of the caption name (e.g. Figure: or Table:)
+%\captiontitlefont{\footnotesize\sffamily} % defines the font of the caption text (same as above, but not bold)
+%\setlength{\abovecaptionskip}{0mm} %lowers the distace of captions to the figure
+
+
+% ********* Header and Footer **********
+% This is something to play with forever. I use here the advanced settings of the KOMA script
+
+\usepackage{scrpage2} %header and footer using the options for the KOMA script
+\renewcommand{\headfont}{\footnotesize\sffamily} % font for the header
+\renewcommand{\pnumfont}{\footnotesize\sffamily} % font for the pagenumbers
+
+%the following lines define the pagestyle for the main document
+\defpagestyle{cb}{%
+(\textwidth,0pt)% sets the border line above the header
+{\pagemark\hfill\headmark\hfill}% doublesided, left page
+{\hfill\headmark\hfill\pagemark}% doublesided, right page
+{\hfill\headmark\hfill\pagemark}%  onesided
+(\textwidth,1pt)}% sets the border line below the header
+%
+{(\textwidth,1pt)% sets the border line above the footer
+{{\it University of Zurich}\hfill Rafael Kueng}% doublesided, left page
+{\rmfamily Rafael Kueng\hfill{\it University of Zurich}}% doublesided, right page
+{\rmfamily Rafael Kueng\hfill{\it University of Zurich}} % one sided printing
+(\textwidth,0pt)% sets the border line below the footer
+}
+
+%this defines the page style for the first pages: all empty
+\renewpagestyle{plain}%
+	{(\textwidth,0pt)%
+		{\hfill}{\hfill}{\hfill}%
+	(\textwidth,0pt)}%
+	{(\textwidth,0pt)%	
+		{\hfill}{\hfill}{\hfill}%
+	(\textwidth,0pt)}
+
+%********** Footnotes **********
+\renewcommand{\footnoterule}{\rule{5cm}{0.2mm} \vspace{0.3cm}} %increases the distance of footnotes from the text
+\deffootnote[1em]{1em}{1em}{\textsuperscript{\normalfont\thefootnotemark}} %some moe formattion on footnotes
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% my own stuff
+
+\usepackage{amsmath}
+\usepackage{xspace}   % fixes spaces after custom commands
+\usepackage{float}    % exact placement of figures (using \begin{figure}[H])
+\usepackage{caption}  % better captions for floats
+%\usepackage{subfig}
+\usepackage{subcaption} % newest package
+\usepackage{fancyvrb} % for the listings
+
+
+\usepackage[pdftex]{hyperref} %import last!
+\usepackage{url}
+
+\usepackage{cleveref} % used for ranges of refs
+
+\usepackage{pgffor} % used for for loop
+
+\usepackage{csquotes}
+\usepackage[backend=biber]{biblatex}
+\renewcommand{\bibliography}[1]{} % make noop. stillincl this cmd for
+\bibliography{bib/bibi}           % texnicenter to display the library
+\addbibresource{bib/bibi.bib}
+
+% my macros
+
+\input{macros}
+
+\input{code/__style.tex}
+
+
+\newfloat{listing}{tbhp}{lst}[section]
+\floatname{listing}{Listing}
+\newcommand{\listoflistings}{\listof{listing}{List of Listings}}
+
+%\newsubfloat{listing}
+
+
+
+%\makeatletter
+%\newbox\sf@box
+%\newenvironment{SubFloat}[2][]%
+%{\def\sf@one{#1}%
+%\def\sf@two{#2}%
+%\setbox\sf@box\hbox
+%\bgroup}%
+%{ \egroup
+%\ifx\@empty\sf@two\@empty\relax
+%\def\sf@two{\@empty}
+%\fi
+%\ifx\@empty\sf@one\@empty\relax
+%\subfloat[\sf@two]{\box\sf@box}%
+%\else
+%\subfloat[\sf@one][\sf@two]{\box\sf@box}%
+%\fi}
+%\makeatother
+
+
+
+%\newfloat{sublisting}{tbhp}{lst}[listing]
+%\floatname{sublisting}{MultiPageListing}
+%\newcommand{\listofmplistings}{\listof{sublisting}{List of MPListings}}
+%\newsubfloat{sublisting}
+
+%################ End Preferences, Begin Document #####################
+
+\pagestyle{plain} % on headers or footers on the first page
+
+\begin{document}
+
+\input{tex/0_title}
+
+\pagestyle{cb} % now we want to have headers and footers
+
+\tableofcontents
+\newpage
+
+\input{tex/1_intro}
+\clearpage
+\input{tex/primer}
+\clearpage
+\input{tex/2_setup}
+\clearpage
+\input{tex/3_com}
+\clearpage
+\input{tex/4_deploy}
+\clearpage
+\input{tex/5_concl}
+\clearpage
+
+\printbibliography
+
+%\input{tex/appendix}
+
+\end{document}
+
+
+

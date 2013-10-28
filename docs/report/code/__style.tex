@@ -1,0 +1,87 @@
+
+\makeatletter
+\def\PYG@reset{\let\PYG@it=\relax \let\PYG@bf=\relax%
+    \let\PYG@ul=\relax \let\PYG@tc=\relax%
+    \let\PYG@bc=\relax \let\PYG@ff=\relax}
+\def\PYG@tok#1{\csname PYG@tok@#1\endcsname}
+\def\PYG@toks#1+{\ifx\relax#1\empty\else%
+    \PYG@tok{#1}\expandafter\PYG@toks\fi}
+\def\PYG@do#1{\PYG@bc{\PYG@tc{\PYG@ul{%
+    \PYG@it{\PYG@bf{\PYG@ff{#1}}}}}}}
+\def\PYG#1#2{\PYG@reset\PYG@toks#1+\relax+\PYG@do{#2}}
+
+\def\PYG@tok@gd{\def\PYG@tc##1{\textcolor[rgb]{0.63,0.00,0.00}{##1}}}
+\def\PYG@tok@gu{\let\PYG@bf=\textbf\def\PYG@tc##1{\textcolor[rgb]{0.50,0.00,0.50}{##1}}}
+\def\PYG@tok@gt{\def\PYG@tc##1{\textcolor[rgb]{0.00,0.25,0.82}{##1}}}
+\def\PYG@tok@gs{\let\PYG@bf=\textbf}
+\def\PYG@tok@gr{\def\PYG@tc##1{\textcolor[rgb]{1.00,0.00,0.00}{##1}}}
+\def\PYG@tok@cm{\let\PYG@it=\textit\def\PYG@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\def\PYG@tok@vg{\def\PYG@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\def\PYG@tok@m{\def\PYG@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\def\PYG@tok@mh{\def\PYG@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\def\PYG@tok@go{\def\PYG@tc##1{\textcolor[rgb]{0.50,0.50,0.50}{##1}}}
+\def\PYG@tok@ge{\let\PYG@it=\textit}
+\def\PYG@tok@vc{\def\PYG@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\def\PYG@tok@il{\def\PYG@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\def\PYG@tok@cs{\let\PYG@it=\textit\def\PYG@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\def\PYG@tok@cp{\def\PYG@tc##1{\textcolor[rgb]{0.74,0.48,0.00}{##1}}}
+\def\PYG@tok@gi{\def\PYG@tc##1{\textcolor[rgb]{0.00,0.63,0.00}{##1}}}
+\def\PYG@tok@gh{\let\PYG@bf=\textbf\def\PYG@tc##1{\textcolor[rgb]{0.00,0.00,0.50}{##1}}}
+\def\PYG@tok@ni{\let\PYG@bf=\textbf\def\PYG@tc##1{\textcolor[rgb]{0.60,0.60,0.60}{##1}}}
+\def\PYG@tok@nl{\def\PYG@tc##1{\textcolor[rgb]{0.63,0.63,0.00}{##1}}}
+\def\PYG@tok@nn{\let\PYG@bf=\textbf\def\PYG@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\def\PYG@tok@no{\def\PYG@tc##1{\textcolor[rgb]{0.53,0.00,0.00}{##1}}}
+\def\PYG@tok@na{\def\PYG@tc##1{\textcolor[rgb]{0.49,0.56,0.16}{##1}}}
+\def\PYG@tok@nb{\def\PYG@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\def\PYG@tok@nc{\let\PYG@bf=\textbf\def\PYG@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\def\PYG@tok@nd{\def\PYG@tc##1{\textcolor[rgb]{0.67,0.13,1.00}{##1}}}
+\def\PYG@tok@ne{\let\PYG@bf=\textbf\def\PYG@tc##1{\textcolor[rgb]{0.82,0.25,0.23}{##1}}}
+\def\PYG@tok@nf{\def\PYG@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\def\PYG@tok@si{\let\PYG@bf=\textbf\def\PYG@tc##1{\textcolor[rgb]{0.73,0.40,0.53}{##1}}}
+\def\PYG@tok@s2{\def\PYG@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\def\PYG@tok@vi{\def\PYG@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\def\PYG@tok@nt{\let\PYG@bf=\textbf\def\PYG@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\def\PYG@tok@nv{\def\PYG@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\def\PYG@tok@s1{\def\PYG@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\def\PYG@tok@sh{\def\PYG@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\def\PYG@tok@sc{\def\PYG@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\def\PYG@tok@sx{\def\PYG@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\def\PYG@tok@bp{\def\PYG@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\def\PYG@tok@c1{\let\PYG@it=\textit\def\PYG@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\def\PYG@tok@kc{\let\PYG@bf=\textbf\def\PYG@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\def\PYG@tok@c{\let\PYG@it=\textit\def\PYG@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\def\PYG@tok@mf{\def\PYG@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\def\PYG@tok@err{\def\PYG@bc##1{\fcolorbox[rgb]{1.00,0.00,0.00}{1,1,1}{##1}}}
+\def\PYG@tok@kd{\let\PYG@bf=\textbf\def\PYG@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\def\PYG@tok@ss{\def\PYG@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\def\PYG@tok@sr{\def\PYG@tc##1{\textcolor[rgb]{0.73,0.40,0.53}{##1}}}
+\def\PYG@tok@mo{\def\PYG@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\def\PYG@tok@kn{\let\PYG@bf=\textbf\def\PYG@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\def\PYG@tok@mi{\def\PYG@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\def\PYG@tok@gp{\let\PYG@bf=\textbf\def\PYG@tc##1{\textcolor[rgb]{0.00,0.00,0.50}{##1}}}
+\def\PYG@tok@o{\def\PYG@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\def\PYG@tok@kr{\let\PYG@bf=\textbf\def\PYG@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\def\PYG@tok@s{\def\PYG@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\def\PYG@tok@kp{\def\PYG@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\def\PYG@tok@w{\def\PYG@tc##1{\textcolor[rgb]{0.73,0.73,0.73}{##1}}}
+\def\PYG@tok@kt{\def\PYG@tc##1{\textcolor[rgb]{0.69,0.00,0.25}{##1}}}
+\def\PYG@tok@ow{\let\PYG@bf=\textbf\def\PYG@tc##1{\textcolor[rgb]{0.67,0.13,1.00}{##1}}}
+\def\PYG@tok@sb{\def\PYG@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\def\PYG@tok@k{\let\PYG@bf=\textbf\def\PYG@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\def\PYG@tok@se{\let\PYG@bf=\textbf\def\PYG@tc##1{\textcolor[rgb]{0.73,0.40,0.13}{##1}}}
+\def\PYG@tok@sd{\let\PYG@it=\textit\def\PYG@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+
+\def\PYGZbs{\char`\\}
+\def\PYGZus{\char`\_}
+\def\PYGZob{\char`\{}
+\def\PYGZcb{\char`\}}
+\def\PYGZca{\char`\^}
+\def\PYGZsh{\char`\#}
+\def\PYGZpc{\char`\%}
+\def\PYGZdl{\char`\$}
+\def\PYGZti{\char`\~}
+% for compatibility with earlier versions
+\def\PYGZat{@}
+\def\PYGZlb{[}
+\def\PYGZrb{]}
+\makeatother

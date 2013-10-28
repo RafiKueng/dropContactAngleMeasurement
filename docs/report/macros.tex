@@ -1,0 +1,123 @@
+
+\newcommand{\spl}{SpaghettiLens\xspace}
+
+% shorcuts for refs (use capital for beginning of sentence)
+% first 3 are for the real layz people..
+\newcommand{\fref}[1]{\ref{fig:#1}}
+\newcommand{\sref}[1]{\ref{sec:#1}}
+\newcommand{\tref}[1]{\ref{tab:#1}}
+\newcommand{\lref}[1]{\ref{lst:#1}}
+\newcommand{\uref}[1]{\ref{uml:#1}}
+\newcommand{\figref}[1]{Figure~\ref{fig:#1}}
+\newcommand{\secref}[1]{Section~\ref{sec:#1}}
+\newcommand{\tabref}[1]{Table~\ref{tab:#1}}
+\newcommand{\lstref}[1]{Listing~\ref{lst:#1}}
+\newcommand{\umlref}[1]{UML~Diagram~\ref{uml:#1}}
+\newcommand{\seqref}[1]{Figure~\ref{seq:#1}}
+\newcommand{\Figref}[1]{Figure~\ref{fig:#1}}
+\newcommand{\Secref}[1]{Section~\ref{sec:#1}}
+\newcommand{\Tabref}[1]{Table~\ref{tab:#1}}
+\newcommand{\Lstref}[1]{Listing~\ref{lst:#1}}
+\newcommand{\Umlref}[1]{UML~Diagram~\ref{uml:#1}}
+\newcommand{\Seqref}[1]{Figure~\ref{seq:#1}}
+
+% reference to ranges of listings (for multipage..)
+% \lstrefr[n_pages]{base filename}
+\newcommand{\lstrefr}[2][1]{\crefrange{lst:#2_1}{lst:#2_#1}}
+\newcommand{\Lstrefr}[2][1]{\Crefrange{lst:#2_1}{lst:#2_#1}}
+
+
+\newcommand{\code}[2]{%
+\begin{listing}[!ht]%
+  \centering%
+  \input{code/#1}%
+  \caption{#2}%
+  \label{lst:#1}%
+\end{listing}%
+}
+
+% insert multiple pages of code
+% \codep[npages]{base file name}{caption}
+\newcommand{\codep}[3][1]{%
+  \foreach \index in {1, ..., #1} {%
+    \code{#2_\index}{#3 (page \index\xspace of #1)}
+  }%
+}
+
+\newcommand{\uml}[3][width=\textwidth]{%
+\begin{figure}[!ht]%
+  \centering%
+  \includegraphics[#1]{uml/#2.pdf}%
+  \caption{#3}%
+  \label{uml:#2}%
+\end{figure}%
+}
+
+
+\newcommand{\fig}[3][width=\figwidth]{%
+\begin{figure}[!ht]%
+  \centering%
+  \includegraphics[#1]{fig/#2.pdf}%
+  \caption{#3}%
+  \label{fig:#2}%
+\end{figure}%
+}
+
+\newcommand{\seq}[3][width=\textwidth]{%
+\begin{figure}[!ht]%
+  \centering%
+  \includegraphics[#1]{seq/#2.pdf}%
+  \caption{#3}%
+  \label{seq:#2}%
+\end{figure}%
+}
+
+% small code fragments
+
+% class / object name
+\newcommand{\C}[1]{%
+\protect\path{#1}%
+}
+%method
+\newcommand{\M}[1]{%
+\protect\path{#1}%
+}
+% function
+\newcommand{\F}[1]{%
+\protect\path{#1}%
+}
+% some other code
+\newcommand{\T}[1]{%
+\protect\path{#1}%
+}
+% strings
+\newcommand{\str}[1]{%
+{\ttfamily "#1"}%
+}
+% events
+\newcommand{\E}[2][]{%
+\protect\path{#2[#1]}%
+}
+
+% interface
+\newcommand{\I}[1]{{\ttfamily/#1/}}
+
+% shell command
+\newcommand{\cmd}[1]{{\\\ttfamily\$\xspace#1\xspace}}
+
+\DeclareUrlCommand\path{\urlstyle{tt}}
+
+
+%database table
+\newcommand{\dbtable}[1]{{\ttfamily #1}\xspace}
+\newcommand{\dbfield}[1]{{\ttfamily #1}\xspace}
+
+
+
+
+
+%%% STANDART LAENGENANGABEN %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newlength{\figwidth}
+\setlength{\figwidth}{0.8\textwidth}
+
+
