@@ -42,6 +42,7 @@ class inpSimpleFrameGrabber(h.AbstractPlugin):
 
     def config(self, filename):
         print 'inpSimpleFrameGrabber: config\n  @t: %f' % (time.time())
+        print 'inpSimpleFrameGrabber: filename: ' + filename
         self.video = cv2.VideoCapture(filename)
         
         self.nFrames = self.video.get(cv2.cv.CV_CAP_PROP_FRAME_COUNT)

@@ -52,11 +52,16 @@ out3.setup([0,2])
 outIWrt.setup([0,1]) #remember: this plaugin is abused and not called with the datastream
 outDisp.setup([0,1]) #remember: this plaugin is abused and not called with the datastream
 
-v = sys.argv[1]
+v = sys.argv[2]
 #print v[0:-4]
 inpfilename = v[0:-4]#"Rh111BN_11_1_100mV"
 
-inp.config("D:/sinergia_data/"+inpfilename+".avi")
+w = sys.argv[1] #folder in basepath
+
+basepath = "G:/sinergia_data/" + w
+
+
+inp.config(basepath+'/'+inpfilename+".avi")
 #inp1.config('bin/Rh111BN_11_1_100mV.avi', 1)
 
 #wrk0.config()
@@ -66,7 +71,7 @@ wrk2.config()
 #out0.config()
 #out1.config()
 
-folder = "D:/sinergia_data/outp"
+folder = basepath + "/outp"
 filename = inpfilename
 path = folder + "/" + filename
 
