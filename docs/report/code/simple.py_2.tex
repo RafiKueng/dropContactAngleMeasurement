@@ -1,0 +1,11 @@
+\begin{Verbatim}[commandchars=\\\{\},numbers=left,firstnumber=41,stepnumber=1,codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8}]
+    \PYG{c}{\PYGZsh{}output}
+    \PYG{k}{if} \PYG{n}{i}\PYG{o}{\PYGZpc{}}\PYG{l+m+mi}{25}\PYG{o}{==}\PYG{l+m+mi}{0}\PYG{p}{:} \PYG{c}{\PYGZsh{}save each 25th frame}
+        \PYG{n}{outIWrt}\PYG{p}{(}\PYG{p}{[}\PYG{n}{data}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{]}\PYG{p}{,}\PYG{n}{wrk2}\PYG{o}{.}\PYG{n}{lastpic}\PYG{p}{]}\PYG{p}{)}
+    \PYG{n}{out3}\PYG{p}{(}\PYG{n}{data}\PYG{p}{)} \PYG{c}{\PYGZsh{}write to csv}
+
+\PYG{c}{\PYGZsh{} clean up    }
+\PYG{n}{inp}\PYG{o}{.}\PYG{n}{finish}\PYG{p}{(}\PYG{p}{)}
+\PYG{n}{wrk2}\PYG{o}{.}\PYG{n}{finish}\PYG{p}{(}\PYG{p}{)}
+\PYG{n}{out3}\PYG{o}{.}\PYG{n}{finish}\PYG{p}{(}\PYG{p}{)}
+\end{Verbatim}

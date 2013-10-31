@@ -1,0 +1,42 @@
+\begin{Verbatim}[commandchars=\\\{\},numbers=left,stepnumber=1,codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8}]
+\PYG{k+kn}{import} \PYG{n+nn}{plugins.inpSimpleFrameGrabber} \PYG{k+kn}{as} \PYG{n+nn}{inpSFG}
+\PYG{k+kn}{import} \PYG{n+nn}{plugins.wrkEdgeFit} \PYG{k+kn}{as} \PYG{n+nn}{wrkEdge}
+\PYG{k+kn}{import} \PYG{n+nn}{plugins.outSimpleDisplay} \PYG{k+kn}{as} \PYG{n+nn}{outSD}
+\PYG{k+kn}{import} \PYG{n+nn}{plugins.outSimpleCSVWriter} \PYG{k+kn}{as} \PYG{n+nn}{outCSV}
+
+\PYG{c}{\PYGZsh{}initalise plugins}
+\PYG{n}{inp} \PYG{o}{=} \PYG{n}{inpSFG}\PYG{o}{.}\PYG{n}{inpSimpleFrameGrabber}\PYG{p}{(}\PYG{p}{)}
+\PYG{n}{wrk2} \PYG{o}{=} \PYG{n}{wrkEdge}\PYG{o}{.}\PYG{n}{wrkEdgeFit}\PYG{p}{(}\PYG{p}{)}
+\PYG{n}{out3} \PYG{o}{=} \PYG{n}{outCSV}\PYG{o}{.}\PYG{n}{outSimpleCSVWriter}\PYG{p}{(}\PYG{p}{)}
+\PYG{n}{outDisp} \PYG{o}{=} \PYG{n}{outSD}\PYG{o}{.}\PYG{n}{outSimpleDisplay}\PYG{p}{(}\PYG{p}{)}
+
+\PYG{c}{\PYGZsh{} setup input data tokens for plugins}
+\PYG{n}{inp}\PYG{o}{.}\PYG{n}{setup}\PYG{p}{(}\PYG{p}{)}
+\PYG{n}{wrk2}\PYG{o}{.}\PYG{n}{setup}\PYG{p}{(}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{]}\PYG{p}{)}
+\PYG{n}{out3}\PYG{o}{.}\PYG{n}{setup}\PYG{p}{(}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{l+m+mi}{2}\PYG{p}{]}\PYG{p}{)}
+\PYG{n}{outDisp}\PYG{o}{.}\PYG{n}{setup}\PYG{p}{(}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{,}\PYG{l+m+mi}{1}\PYG{p}{]}\PYG{p}{)}
+
+\PYG{c}{\PYGZsh{}configure plugins}
+\PYG{n}{inp}\PYG{o}{.}\PYG{n}{config}\PYG{p}{(}\PYG{l+s}{"}\PYG{l+s}{move.avi}\PYG{l+s}{"}\PYG{p}{)}
+\PYG{n}{wrk2}\PYG{o}{.}\PYG{n}{config}\PYG{p}{(}\PYG{p}{)}
+\PYG{n}{out3}\PYG{o}{.}\PYG{n}{config}\PYG{p}{(}\PYG{l+s}{"}\PYG{l+s}{csvfile.csv}\PYG{l+s}{"}\PYG{p}{)}
+\PYG{n}{outIWrt}\PYG{o}{.}\PYG{n}{config}\PYG{p}{(}\PYG{l+s}{"}\PYG{l+s}{path/for/images}\PYG{l+s}{"}\PYG{p}{)}
+
+\PYG{c}{\PYGZsh{} trian the worker with 64 images}
+\PYG{n}{trainimg} \PYG{o}{=} \PYG{p}{[}\PYG{p}{]}
+\PYG{k}{for} \PYG{n}{x} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{l+m+mi}{64}\PYG{p}{)}\PYG{p}{:}
+    \PYG{n}{img} \PYG{o}{=} \PYG{n}{inp}\PYG{o}{.}\PYG{n}{getFrameNr}\PYG{p}{(}\PYG{n}{inp}\PYG{o}{.}\PYG{n}{nFrames}\PYG{o}{/}\PYG{o}{/}\PYG{l+m+mi}{64}\PYG{o}{*}\PYG{n}{x}\PYG{p}{)}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{]}
+    \PYG{n}{trainimg}\PYG{o}{.}\PYG{n}{append}\PYG{p}{(}\PYG{n}{img}\PYG{p}{)}
+\PYG{n}{wrk2}\PYG{o}{.}\PYG{n}{train}\PYG{p}{(}\PYG{n}{trainimg}\PYG{p}{)}
+
+\PYG{c}{\PYGZsh{} reset the reader}
+\PYG{n}{inp}\PYG{o}{.}\PYG{n}{setPos}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{)}
+
+\PYG{c}{\PYGZsh{} execute the analysis for the whole movie}
+\PYG{k}{for} \PYG{n}{i} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{n}{inp}\PYG{o}{.}\PYG{n}{nFrames}\PYG{p}{)}\PYG{p}{:}
+    \PYG{n}{data} \PYG{o}{=} \PYG{p}{[}\PYG{p}{]}
+    \PYG{n}{data}\PYG{o}{.}\PYG{n}{extend}\PYG{p}{(}\PYG{n}{inp}\PYG{p}{(}\PYG{p}{)}\PYG{p}{)}
+
+    \PYG{c}{\PYGZsh{} do the work}
+    \PYG{n}{data}\PYG{o}{.}\PYG{n}{extend}\PYG{p}{(}\PYG{n}{wrk2}\PYG{p}{(}\PYG{n}{data}\PYG{p}{)}\PYG{p}{)} \PYG{c}{\PYGZsh{}save each 25th frame}
+\end{Verbatim}

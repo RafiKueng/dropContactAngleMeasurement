@@ -58,8 +58,8 @@ inpfilename = v[0:-4]#"Rh111BN_11_1_100mV"
 
 w = sys.argv[1] #folder in basepath
 
-basepath = "G:/sinergia_data/" + w
-
+#basepath = "G:/sinergia_data/" + w
+basepath = "./" + w
 
 inp.config(basepath+'/'+inpfilename+".avi")
 #inp1.config('bin/Rh111BN_11_1_100mV.avi', 1)

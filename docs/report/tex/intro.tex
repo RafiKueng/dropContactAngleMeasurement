@@ -1,1 +1,232 @@
-test
+\section{About}
+
+The goal of this project was the measurement of a contact angle between a drop of HClO$_4$ on a h-BN/Rh(111) Nano mesh and its change in time.
+the contact angle of the fluid and the surface was to be measured from the video footage of the experiment using pattern recognition algorithms.
+
+
+
+\section{Setup}
+
+The program consists of
+
+
+\begin{itemize}
+	\item input plug ins, that read data from file or live from video camera
+	\item worker plug ins, that analyse each input frame and append data to the pipeline
+	\item output plug ins, that write parts of the pipeline to screen or file(s)
+\end{itemize}
+
+The pipeline is an array of data, that can be read and appended to by plug ins. in the first place there is always the frame number, second place the frame time, third place the input image. all other slots can be dynamically allocated.
+
+the plug ins are just called in a loop on the data pipeline as shown in demo program
+
+\codep[2]{simple.py}{demo of a simple program set-up}
+%\codep[2]{simple.py}{demo of a simple program setup}
+
+
+\subsection{Input Plug ins}
+Input plug ins can just grab any frame from a file or device and populate the first tree slots of the pipeline.
+
+They can do some pre processing of the images if necessary in the time domain, since they have possible access to past and future frames.
+In opposite to worker plugins, that can only operate on the current frame.
+Two input plugins were implemented.
+
+\subsubsection[inpSimpleFrameGrabber]{\C{inpSimpleFrameGrabber}}
+
+A simple frame grabber that gets the current frame from a video file.
+
+\subsubsection[inpAveragingFrameGrabber]{\C{inpAveragingFrameGrabber}}
+
+It calculates a moving average over the last \V{average_over} frames to get rid of static noise.
+
+Pro: cancels out thermal CCD noise
+con: blurs fast movement
+
+
+\subsection{Output Plugins}
+
+Several output plug ins to display and save data have been implemented:
+
+\subsubsection[outSaveFrame]{\C{outSaveFrame}}
+Saves image data from the pipeline to a image file.
+
+\subsubsection[outCreateGraph]{\C{outCreateGraph}}
+\todo{to be implemented}
+Collects any numeric values from the pipeline and save it temporary to ram or temp file to create a plot of the values vs. time.
+The plot is entirely generated at the end of the program, unless the config parameter live is set true (not recommended).
+
+\subsubsection[outHistogram]{\C{outHistogram}}
+Calculates the histogram of an image data field from the pipeline and displays it on screen. Stops the program until the histogram is closed.
+
+\subsubsection[outSimpleCSVWriter]{\C{outSimpleCSVWriter}}
+Writes data to a CSV\footnote{comma separated values} file for further analysis.
+
+
+\subsubsection[outSimpleDisplay]{\C{outSimpleDisplay}}
+Displays an image data field on screen and pauses the program.
+
+
+
+
+\subsection{Worker Plugins}
+
+\subsubsection[wrkInvert]{\C{wrkInvert}}
+Demonstration Plugin that flips the image by 90 degrees.
+
+\subsubsection[wrkEdgeFit]{\C{wrkEdgeFit}}
+Task / Project specific worker plug in that does the actual image analysis and measurement of contact angle.
+Described in details in section \todo{add section}
+
+
+
+\subsection{Detection of Drop contours and measurement of contact angle}
+This section describes the implementation of \C{wrkEdgeFit}, the worker plug in that detects the drops and calculates the contact angle to the surface.
+
+
+\subsubsection{training phase}
+
+This plug in uses the training phase to determine the position of the surface and the pipette.
+
+For each training image the vertical lines are detected using the following receipt:
+
+\begin{enumerate}
+	\item convert to uint8 greyscale image\\
+        grey (n x m uint8 array) <- map / clip values from inp to [0 .. 255]
+  \item edge detection\\
+        edges (n x m bool array) <- cv2.Canny(grey)
+  \item identify contours\\
+        contour = [contours, contour = list of pixels] <- cv2.findContours(edges)
+  \item identify vertical aligned straight contour lines using Probabilistic Hough Line Transform\\
+        hl = list of (start point, end point) <- cv.houghlinep(contours)
+\end{enumerate}
+
+The hough line transform has a threshold set high enough to filter out any artefacts, such that only long straight vertical lines result, the pipette contours.
+The x values of all those point represent the position of the pipette.
+
+To detect the mirror plane, the found contours are filtered for the points to the furthest left and right.
+Those represent with a high probability the edge of the drop on the mirroring surface.
+
+
+For each of the training image this analysis is done. To get the final position of the mirror plane and the pipette, the median over all training images is taken.
+
+
+\subsubsection{preparation of data}
+
+During live processing, for each frame, the following composition of algorithms is executed:
+
+
+\begin{enumerate}
+	\item adjust brightness and contrast and convert to uint8 greyscale image\\
+        grey (n x m uint8 array) <- map / clip values from inp to [0 .. 255]
+  \item canny edge detection\\
+        edges (n x m bool array) <- cv2.Canny(grey)
+  \item identify contours\\
+        contour = [contours, contour = list of pixels] <- cv2.findContours(edges)
+  \item sort points of detected contours into two groups, $x>x_{1,pip}$ and $x_p<x_{0,pip}$
+  \item mirror all points with $y_p<y_{mirror}$ at the mirror plane $y_{mirror}$
+\end{enumerate}
+
+
+\subsubsection{calculation of contact angle}
+
+To measure the angle, three possible ways are implemented:
+
+The first being the naive, analytic way:
+\begin{enumerate}
+  \item fit a polynomial of degree 5 to all points for each group, left and right -> $P_l$, $P_r$
+  \item get derivatives of $P_l$, $P_r$ at the point where $P_l$, $P_r$ cross the base line.
+\end{enumerate}
+
+Pro:
+takes overall shape into account
+works reliably for great variations of n detected points, as long as distributed
+
+contra:
+fails at very steep and shallow angles
+
+
+The second only takes into account only points close to the mirror plane.
+\begin{enumerate}
+  \item filter point sets for points with $y_p - y_{baseline}< threshold$
+  \item fit line through resulting points, get steepness.
+\end{enumerate}
+
+
+pro:
+works good for small angles
+still works if edge blurred with background gradient
+
+contra:
+fails if little amount of points in the threshold
+fails if camera is out of focus..
+
+
+The third is the same as the second, but involves a mirroring of the points at x=y bevore fitting the points.
+This results in being optimal for big angles.
+
+
+In a last step choose which method to take.
+If $\varphi_1,45$ choose $\varphi_2$.
+If $\varphi_1>75$ choose $\varphi_3$.
+
+
+Additionally to returning $\varphi_1$, $\varphi_2$ and $\varphi_3$, the worker calulates an average $\varphi_{ave}$ and median $\varphi_{med}$ of this values over the \V{self.smooth_over} last results.
+
+
+\subsection{Algos}
+
+\subsubsection{Canny}
+[Canny86]  Canny. A Computational Approach to Edge Detection, IEEE Trans. on Pattern Analysis and Machine Intelligence, 8(6), pp. 679-698 (1986).
+
+
+\subsubsection{findcontours / Suzuki85}
+[Suzuki85] Suzuki, S. and Abe, K., Topological Structural Analysis of Digitized Binary Images by Border Following. CVGIP 30 1, pp 32-46 (1985)
+
+
+
+\subsubsection{Hough Line Transform}
+
+http://homepages.inf.ed.ac.uk/rbf/HIPR2/hough.htm
+
+D. Ballard and C. Brown Computer Vision, Prentice-Hall, 1982, Chap. 4.
+
+R. Boyle and R. Thomas Computer Vision:A First Course, Blackwell Scientific Publications, 1988, Chap. 5.
+
+A. Jain Fundamentals of Digital Image Processing, Prentice-Hall, 1989, Chap. 9.
+
+D. Vernon Machine Vision, Prentice-Hall, 1991, Chap. 6. 
+
+
+wiki:
+The classical Hough transform was concerned with the identification of lines in the image, but later the Hough transform has been extended to identifying positions of arbitrary shapes, most commonly circles or ellipses. The Hough transform as it is universally used today was invented by Richard Duda and Peter Hart in 1972, who called it a "generalized Hough transform"[2] after the related 1962 patent of Paul Hough.[3] The transform was popularized in the computer vision community by Dana H. Ballard through a 1981 journal article titled "Generalizing the Hough transform to detect arbitrary shapes".
+
+
+
+
+
+\section{results and conclusions}
+
+The results were usable, but not very good, especially for small and big angles, the algorithm fails.
+
+reasons:
+* fast moving image: input frame averaging blurs the edge
+* blurry / out of focus image
+* pipette detection not critical and mostly ok
+* baseline detection critical for success and fails too often.
+
+
+resolution:
+* on fast moving image sequences or for all images use gaussian blur to get rid of noise instead of frame averaging, or both?
+* out of focus images are hard. maybe pop up and offer the user to select the edge by hand. or remember the last value and try to get as close as possible. (wouldn't work with multithreading..)
+* imrove baseline detection by using the same algo but better filter values. auto detect brightness/contrast adj? really hard to do good settings for the variety of movies..
+ flip all points at y over and make $SP=\sum_{pixels}(flipped - original)$. find $y_{base} = min(SP(y))$
+
+\section{outlook}
+
+Revise algorithm, as discussed above. improve baseline detection.
+More reliable angle detection, esp. for small / big angles.
+Multi threading using workers / consumers / queues.
+QT GUI for non programmer users in progress.
+More plug ins.
+
+

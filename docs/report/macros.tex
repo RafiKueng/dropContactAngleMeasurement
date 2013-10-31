@@ -98,7 +98,10 @@
 \newcommand{\E}[2][]{%
 \protect\path{#2[#1]}%
 }
-
+% variable / fieldname ect
+\newcommand{\V}[1]{%
+\protect\path{#1}%
+}
 % interface
 \newcommand{\I}[1]{{\ttfamily/#1/}}
 
@@ -120,4 +123,5 @@
 \newlength{\figwidth}
 \setlength{\figwidth}{0.8\textwidth}
 
+\newcommand{\todo}[1]{\textbf{\color{red}#1}\\}
 
